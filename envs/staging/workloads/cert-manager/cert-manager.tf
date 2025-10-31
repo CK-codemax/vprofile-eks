@@ -1,3 +1,6 @@
+##############################################################
+# 1️⃣ Namespace for cert-manager
+##############################################################
 resource "kubernetes_namespace" "cert_manager" {
   metadata {
     name = "cert-manager"
@@ -9,6 +12,9 @@ resource "kubernetes_namespace" "cert_manager" {
   ]
 }
 
+##############################################################
+# 2️⃣ Helm release for cert-manager
+##############################################################
 resource "helm_release" "cert_manager" {
   name             = "cert-manager"
   repository       = "https://charts.jetstack.io"
@@ -19,6 +25,7 @@ resource "helm_release" "cert_manager" {
   atomic           = true
   timeout          = 900
 
+  # Ensure CRDs are installed
   set {
     name  = "installCRDs"
     value = "true"
@@ -30,10 +37,22 @@ resource "helm_release" "cert_manager" {
   ]
 }
 
+##############################################################
+# 3️⃣ Wait for cert-manager CRDs before applying manifests
+##############################################################
 resource "null_resource" "wait_for_cert_manager_crds" {
   provisioner "local-exec" {
     command = <<-EOT
-      kubectl wait --for=condition=Established crd/clusterissuers.cert-manager.io --timeout=300s || true
+      echo "Waiting for cert-manager CRDs to be established..."
+      for i in {1..30}; do
+        if kubectl get crd clusterissuers.cert-manager.io >/dev/null 2>&1; then
+          echo "✅ cert-manager CRDs are ready!"
+          exit 0
+        fi
+        echo "⏳ Waiting for CRDs... retry $i/30"
+        sleep 10
+      done
+      echo "❌ Timeout waiting for cert-manager CRDs" && exit 1
     EOT
   }
 
@@ -41,4 +60,3 @@ resource "null_resource" "wait_for_cert_manager_crds" {
     helm_release.cert_manager
   ]
 }
-
