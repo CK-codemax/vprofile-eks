@@ -25,22 +25,8 @@ resource "helm_release" "cert_manager" {
   atomic           = true
   timeout          = 900
 
-  # Ensure CRDs are installed
-  set {
-    name  = "installCRDs"
-    value = "true"
-  }
-
-  # ✅ Set the resource requests for ACME HTTP-01 solver to meet cluster limits
-  set {
-    name  = "extraArgs[0]"
-    value = "--acme-http01-solver-resource-requests-cpu=50m"
-  }
-
-  set {
-    name  = "extraArgs[1]"
-    value = "--acme-http01-solver-resource-requests-memory=64Mi"
-  }
+  # ✅ Reference an external Helm values file
+  values = [file("${path.module}/values/cert-manager-values.yaml")]
 
   depends_on = [
     data.terraform_remote_state.eks,

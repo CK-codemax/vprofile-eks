@@ -1,0 +1,25 @@
+installCRDs: true
+
+extraArgs:
+  - --leader-election-namespace=kube-system
+  - --acme-http01-solver-resource-requests-cpu=50m
+  - --acme-http01-solver-resource-requests-memory=64Mi
+  - --max-concurrent-challenges=30
+
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: 250m
+    memory: 256Mi
+
+securityContext:
+  fsGroup: 1001
+  runAsNonRoot: true
+  runAsUser: 1001
+
+prometheus:
+  enabled: true
+  servicemonitor:
+    enabled: true
