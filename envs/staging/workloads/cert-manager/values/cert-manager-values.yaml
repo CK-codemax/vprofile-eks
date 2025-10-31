@@ -20,6 +20,6 @@ securityContext:
   runAsUser: 1001
 
 prometheus:
-  enabled: true
+  enabled: false
   servicemonitor:
-    enabled: true
+    enabled: false
