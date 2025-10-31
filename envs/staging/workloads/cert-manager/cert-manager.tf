@@ -30,3 +30,15 @@ resource "helm_release" "cert_manager" {
   ]
 }
 
+resource "null_resource" "wait_for_cert_manager_crds" {
+  provisioner "local-exec" {
+    command = <<-EOT
+      kubectl wait --for=condition=Established crd/clusterissuers.cert-manager.io --timeout=300s || true
+    EOT
+  }
+
+  depends_on = [
+    helm_release.cert_manager
+  ]
+}
+

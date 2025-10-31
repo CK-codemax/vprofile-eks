@@ -40,6 +40,11 @@ argocd_cert_issuer      = "http-01-production"
 argocd_cert_secret_name = "argo-ochukowhoro-xyz"
 
 # ==============================================================================
+# Cert-Manager Variables
+# ==============================================================================
+cert_manager_email = "admin@ochukowhoro.xyz"
+
+# ==============================================================================
 # ArgoCD Application Variables
 # ==============================================================================
 argocd_app_repo_url            = "https://github.com/CK-codemax/argo-project-defs.git"

@@ -25,5 +25,9 @@ resource "kubernetes_manifest" "http01_production_cluster_issuer" {
     }
   }
 
+  depends_on = [
+    helm_release.cert_manager,
+    null_resource.wait_for_cert_manager_crds
+  ]
 }
 
