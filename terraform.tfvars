@@ -64,3 +64,8 @@ developer_user_name          = "developer3"
 developer_eks_policy_name    = "AmazonEKSDeveloperPolicy3"
 aws_lbc_policy_name          = "AWSLoadBalancerController3"
 
+# ==============================================================================
+# EFS Variables
+# ==============================================================================
+efs_creation_token = "eks-staging-demo3"
+
