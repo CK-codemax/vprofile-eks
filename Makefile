@@ -2,7 +2,7 @@
 # VProfile EKS Infrastructure Makefile
 # ==============================================================================
 
-.PHONY: help init-s3 deploy-s3 deploy-vpc deploy-eks deploy-infrastructure \
+.PHONY: help init-s3 deploy-s3 migrate-s3-backend deploy-vpc deploy-eks deploy-infrastructure \
 	deploy-workloads deploy-all destroy-all destroy-workloads destroy-infrastructure \
 	plan-vpc plan-eks plan-workloads update-kubeconfig verify-cluster \
 	clean
@@ -35,6 +35,7 @@ help:
 	@echo "$(YELLOW)Infrastructure Targets:$(NC)"
 	@echo "  make init-s3              - Initialize S3 backend (first time only)"
 	@echo "  make deploy-s3            - Deploy S3 backend"
+	@echo "  make migrate-s3-backend   - Migrate S3 backend state to S3"
 	@echo "  make deploy-vpc           - Deploy VPC infrastructure"
 	@echo "  make deploy-eks           - Deploy EKS cluster"
 	@echo "  make deploy-infrastructure - Deploy VPC and EKS sequentially"
@@ -63,17 +64,32 @@ help:
 # ==============================================================================
 init-s3:
 	@echo "$(GREEN)Initializing S3 backend...$(NC)"
-	@cd $(S3_DIR) && terraform init
+	@cd $(S3_DIR) && terraform init -backend-config=../../../$(STATE_CONFIG)
 
 deploy-s3:
 	@echo "$(GREEN)Deploying S3 backend...$(NC)"
 	@cd $(S3_DIR) && \
 		terraform init && \
-		terraform plan -var-file=../../$(TFVARS) -out=tfplan && \
+		terraform plan -var-file=../../../$(TFVARS) -out=tfplan && \
 		terraform apply -auto-approve tfplan && \
 		rm -f tfplan
 	@echo "$(GREEN)✓ S3 backend deployed$(NC)"
-	@echo "$(YELLOW)Note: Reinitialize with backend: cd $(S3_DIR) && terraform init -migrate-state -backend-config=../../$(STATE_CONFIG)$(NC)"
+	@echo ""
+	@echo "$(YELLOW)━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━$(NC)"
+	@echo "$(YELLOW)IMPORTANT: Before migrating to S3 backend:$(NC)"
+	@echo "$(YELLOW)━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━$(NC)"
+	@echo "$(BLUE)1. Uncomment the backend configuration in:$(NC)"
+	@echo "   $(S3_DIR)/state.tf"
+	@echo ""
+	@echo "$(BLUE)2. Then run:$(NC)"
+	@echo "   make migrate-s3-backend"
+	@echo "$(YELLOW)━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━$(NC)"
+
+migrate-s3-backend:
+	@echo "$(GREEN)Migrating S3 backend state...$(NC)"
+	@cd $(S3_DIR) && \
+		terraform init -migrate-state -backend-config=../../../$(STATE_CONFIG)
+	@echo "$(GREEN)✓ S3 backend state migrated$(NC)"
 
 # ==============================================================================
 # Infrastructure Deployment
