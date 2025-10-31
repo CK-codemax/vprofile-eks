@@ -43,190 +43,119 @@ This project uses a unified `terraform.tfvars` file at the root level (`terrafor
 - **Availability Zones**: us-west-2a, us-west-2b
 - **S3 Bucket**: vprofile-move35623-add-terraform-state
 
-## Commands
+## Deployment
 
-### Step 1: Initialize and Create S3 Backend
+This project uses a Makefile for simplified deployment. See available targets with `make help`.
 
-The S3 backend must be created first, as it's used to store Terraform state for all other modules.
+### Quick Start
 
 ```bash
-# Navigate to S3 backend directory
+# 1. Initialize S3 backend (first time only)
+make init-s3
+make deploy-s3
+
+# 2. Deploy infrastructure (VPC + EKS)
+make deploy-infrastructure
+
+# 3. Update kubectl config
+make update-kubeconfig
+
+# 4. Verify cluster access
+make verify-cluster
+
+# 5. Deploy all workloads
+make deploy-workloads
+
+# Or deploy everything at once:
+make deploy-all
+```
+
+### Available Make Targets
+
+**Infrastructure:**
+- `make init-s3` - Initialize S3 backend (first time only)
+- `make deploy-s3` - Deploy S3 backend
+- `make deploy-vpc` - Deploy VPC infrastructure
+- `make deploy-eks` - Deploy EKS cluster
+- `make deploy-infrastructure` - Deploy VPC and EKS sequentially
+
+**Workloads:**
+- `make deploy-workloads` - Deploy all workloads sequentially
+- `make deploy-all` - Deploy infrastructure + workloads
+
+**Planning:**
+- `make plan-vpc` - Plan VPC changes
+- `make plan-eks` - Plan EKS changes
+- `make plan-workloads` - Plan all workload changes
+
+**Destruction:**
+- `make destroy-workloads` - Destroy all workloads (reverse order)
+- `make destroy-infrastructure` - Destroy VPC and EKS
+- `make destroy-all` - Destroy everything
+
+**Utilities:**
+- `make update-kubeconfig` - Update kubectl config for cluster
+- `make verify-cluster` - Verify cluster access
+- `make clean` - Clean Terraform plan files
+
+### Manual Deployment (Alternative)
+
+If you prefer to deploy manually or need more control, you can use Terraform commands directly:
+
+**Step 1: Initialize and Create S3 Backend**
+
+```bash
 cd envs/global/s3
-
-# Initialize Terraform (without backend first time)
 terraform init
-
-# Apply to create S3 bucket
 terraform apply -var-file=../../../terraform.tfvars
-
-# Reinitialize with backend configuration
 terraform init -migrate-state -backend-config=../../../state.config
 ```
 
-### Step 2: Deploy VPC Infrastructure
+**Step 2: Deploy VPC**
 
 ```bash
-# Navigate to VPC directory
 cd ../../staging/vpc
-
-# Initialize Terraform with backend
 terraform init -backend-config=../../../state.config
-
-# Review planned changes
 terraform plan -var-file=../../../terraform.tfvars
-
-# Apply VPC configuration
 terraform apply -var-file=../../../terraform.tfvars
 ```
 
-### Step 3: Deploy EKS Cluster
+**Step 3: Deploy EKS Cluster**
 
 ```bash
-# Navigate to EKS directory
 cd ../eks
-
-# Initialize Terraform with backend
 terraform init -backend-config=../../../state.config
-
-# Review planned changes
 terraform plan -var-file=../../../terraform.tfvars
-
-# Apply EKS configuration (this will take 10-15 minutes)
 terraform apply -var-file=../../../terraform.tfvars
 ```
 
-### Step 4: Configure kubectl
+**Step 4: Configure kubectl**
 
 ```bash
-# Update kubeconfig to connect to your cluster
 aws eks update-kubeconfig --name staging-demo3 --region us-west-2
-
-# Verify cluster access
 kubectl get nodes
-
-# Wait for nodes to be ready
-kubectl wait --for=condition=Ready nodes --all --timeout=300s
 ```
 
-### Step 5: Deploy Infrastructure Workloads
+**Step 5: Deploy Workloads**
 
-Workloads must be deployed in the correct order due to dependencies. Each workload creates its own namespace and uses atomic Helm installs (delete on fail).
-
-#### 5.1: Metrics Server (No dependencies)
-
+Each workload follows the same pattern:
 ```bash
-cd ../workloads/metrics-server
+cd envs/staging/workloads/<workload-name>
 terraform init -backend-config=../../../../state.config
 terraform apply -var-file=../../../../terraform.tfvars
-
-# Verify installation
-kubectl get pods -n metrics-server
 ```
 
-#### 5.2: Cluster Autoscaler (Depends on: metrics-server)
-
-```bash
-cd ../cluster-autoscaler
-terraform init -backend-config=../../../../state.config
-terraform apply -var-file=../../../../terraform.tfvars
-
-# Verify installation
-kubectl get pods -n cluster-autoscaler
-```
-
-#### 5.3: AWS Load Balancer Controller (Depends on: cluster-autoscaler)
-
-```bash
-cd ../aws-lbc
-terraform init -backend-config=../../../../state.config
-terraform apply -var-file=../../../../terraform.tfvars
-
-# Verify installation
-kubectl get pods -n aws-load-balancer-controller
-```
-
-#### 5.4: Nginx Ingress Controller (Depends on: aws-lbc)
-
-```bash
-cd ../nginx-ingress
-terraform init -backend-config=../../../../state.config
-terraform apply -var-file=../../../../terraform.tfvars
-
-# Verify installation (wait for LoadBalancer to be provisioned)
-kubectl get svc -n ingress-nginx
-kubectl get pods -n ingress-nginx
-```
-
-#### 5.5: Cert Manager (Depends on: nginx-ingress)
-
-```bash
-cd ../cert-manager
-terraform init -backend-config=../../../../state.config
-terraform apply -var-file=../../../../terraform.tfvars
-
-# Verify installation
-kubectl get pods -n cert-manager
-```
-
-#### 5.6: EBS CSI Driver (No Helm dependencies, can run in parallel)
-
-```bash
-cd ../ebs-csi-driver
-terraform init -backend-config=../../../../state.config
-terraform apply -var-file=../../../../terraform.tfvars
-
-# Verify installation
-kubectl get pods -n ebs-csi-driver
-```
-
-#### 5.7: EFS CSI Driver (No Helm dependencies, can run in parallel)
-
-```bash
-cd ../efs-csi-driver
-terraform init -backend-config=../../../../state.config
-terraform apply -var-file=../../../../terraform.tfvars
-
-# Verify installation
-kubectl get pods -n efs-csi-driver
-kubectl get storageclass efs
-```
-
-#### 5.8: ArgoCD (Depends on: cert-manager, nginx-ingress)
-
-```bash
-cd ../argocd
-terraform init -backend-config=../../../../state.config
-terraform apply -var-file=../../../../terraform.tfvars
-
-# Wait for ArgoCD to be ready (this may take a few minutes)
-kubectl wait --for=condition=Ready pods -l app.kubernetes.io/name=argocd-server -n argocd --timeout=600s
-kubectl get pods -n argocd
-```
-
-### Step 6: Deploy Application Workloads
-
-#### 6.1: ArgoCD Ingress (Depends on: argocd, cert-manager, nginx-ingress)
-
-```bash
-cd ../argocd-ingress
-terraform init -backend-config=../../../../state.config
-terraform apply -var-file=../../../../terraform.tfvars
-
-# Verify ingress and certificate
-kubectl get ingress -n argocd
-kubectl get certificate -n argocd
-```
-
-#### 6.2: VProfile Application (Depends on: argocd)
-
-```bash
-cd ../vprofile-app
-terraform init -backend-config=../../../../state.config
-terraform apply -var-file=../../../../terraform.tfvars
-
-# Verify ArgoCD application
-kubectl get application -n argocd
-```
+Workloads must be deployed in order:
+1. metrics-server
+2. cluster-autoscaler
+3. aws-lbc
+4. nginx-ingress
+5. cert-manager
+6. ebs-csi-driver
+7. efs-csi-driver
+8. argocd
+9. argocd-ingress
+10. vprofile-app
 
 ### Step 7: Install ArgoCD CLI and Access ArgoCD
 
@@ -354,6 +283,7 @@ curl -i --header "Host: ex6.antonputra.com" http://k8s-6example-myapp-c79dafe9b7
 
 ```
 .
+├── Makefile                  # Deployment automation
 ├── terraform.tfvars          # Unified configuration file (all variables)
 ├── state.config              # Backend configuration (region and bucket)
 ├── envs/
@@ -468,60 +398,37 @@ curl -i --header "Host: ex6.antonputra.com" http://k8s-6example-myapp-c79dafe9b7
 
 ⚠️ **Warning**: Destroy resources in reverse order to avoid dependency issues.
 
+### Using Makefile (Recommended)
+
 ```bash
-# Destroy application workloads first
-cd envs/staging/workloads/vprofile-app
-terraform init -backend-config=../../../../state.config
-terraform destroy -var-file=../../../../terraform.tfvars
+# Destroy all workloads
+make destroy-workloads
 
-cd ../argocd-ingress
-terraform init -backend-config=../../../../state.config
-terraform destroy -var-file=../../../../terraform.tfvars
+# Destroy infrastructure (VPC + EKS)
+make destroy-infrastructure
 
-# Destroy infrastructure workloads (in reverse order)
-cd ../argocd
-terraform init -backend-config=../../../../state.config
-terraform destroy -var-file=../../../../terraform.tfvars
+# Destroy everything
+make destroy-all
+```
 
-cd ../efs-csi-driver
-terraform init -backend-config=../../../../state.config
-terraform destroy -var-file=../../../../terraform.tfvars
+### Manual Destruction
 
-cd ../ebs-csi-driver
-terraform init -backend-config=../../../../state.config
-terraform destroy -var-file=../../../../terraform.tfvars
+If you prefer to destroy manually:
 
-cd ../cert-manager
-terraform init -backend-config=../../../../state.config
-terraform destroy -var-file=../../../../terraform.tfvars
-
-cd ../nginx-ingress
-terraform init -backend-config=../../../../state.config
-terraform destroy -var-file=../../../../terraform.tfvars
-
-cd ../aws-lbc
-terraform init -backend-config=../../../../state.config
-terraform destroy -var-file=../../../../terraform.tfvars
-
-cd ../cluster-autoscaler
-terraform init -backend-config=../../../../state.config
-terraform destroy -var-file=../../../../terraform.tfvars
-
-cd ../metrics-server
-terraform init -backend-config=../../../../state.config
-terraform destroy -var-file=../../../../terraform.tfvars
+```bash
+# Destroy workloads in reverse order
+cd envs/staging/workloads/vprofile-app && terraform destroy -var-file=../../../../terraform.tfvars -auto-approve
+cd ../argocd-ingress && terraform destroy -var-file=../../../../terraform.tfvars -auto-approve
+# ... continue for all workloads
 
 # Destroy EKS cluster
-cd ../../eks
-terraform destroy -var-file=../../../terraform.tfvars
+cd ../../eks && terraform destroy -var-file=../../../terraform.tfvars -auto-approve
 
 # Destroy VPC
-cd ../vpc
-terraform destroy -var-file=../../../terraform.tfvars
+cd ../vpc && terraform destroy -var-file=../../../terraform.tfvars -auto-approve
 
 # Destroy S3 backend (only if you want to remove state storage)
-cd ../../global/s3
-terraform destroy -var-file=../../../terraform.tfvars
+cd ../../global/s3 && terraform destroy -var-file=../../../terraform.tfvars -auto-approve
 ```
 
 ## Notes
