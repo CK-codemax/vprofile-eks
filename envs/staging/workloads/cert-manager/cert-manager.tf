@@ -28,6 +28,17 @@ resource "helm_release" "cert_manager" {
   # ✅ Reference an external Helm values file
   values = [file("${path.module}/values/cert-manager-values.yaml")]
 
+  # Explicitly disable Prometheus ServiceMonitor to avoid CRD dependency
+  set {
+    name  = "prometheus.enabled"
+    value = "false"
+  }
+
+  set {
+    name  = "prometheus.servicemonitor.enabled"
+    value = "false"
+  }
+
   depends_on = [
     data.terraform_remote_state.eks,
     kubernetes_namespace.cert_manager
