@@ -52,3 +52,28 @@ variable "aws_region" {
   description = "AWS region (for cluster autoscaler)."
 }
 
+variable "eks_admin_policy_name" {
+  description = "Name of the IAM policy for EKS admin access."
+  type        = string
+}
+
+variable "manager_user_name" {
+  description = "Name of the IAM user for manager role."
+  type        = string
+}
+
+variable "eks_assume_admin_policy_name" {
+  description = "Name of the IAM policy for assuming EKS admin role."
+  type        = string
+}
+
+variable "developer_user_name" {
+  description = "Name of the IAM user for developer role."
+  type        = string
+}
+
+variable "developer_eks_policy_name" {
+  description = "Name of the IAM policy for EKS developer access."
+  type        = string
+}
+
