@@ -36,27 +36,3 @@ resource "helm_release" "cert_manager" {
     kubernetes_namespace.cert_manager
   ]
 }
-
-##############################################################
-# 3️⃣ Wait for cert-manager CRDs before applying manifests
-##############################################################
-resource "null_resource" "wait_for_cert_manager_crds" {
-  provisioner "local-exec" {
-    command = <<-EOT
-      echo "Waiting for cert-manager CRDs to be established..."
-      for i in {1..30}; do
-        if kubectl get crd clusterissuers.cert-manager.io >/dev/null 2>&1; then
-          echo "✅ cert-manager CRDs are ready!"
-          exit 0
-        fi
-        echo "⏳ Waiting for CRDs... retry $i/30"
-        sleep 10
-      done
-      echo "❌ Timeout waiting for cert-manager CRDs" && exit 1
-    EOT
-  }
-
-  depends_on = [
-    helm_release.cert_manager
-  ]
-}
