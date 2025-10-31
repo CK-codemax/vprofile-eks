@@ -19,10 +19,10 @@ This project creates:
 ## Prerequisites
 
 - [Terraform](https://www.terraform.io/downloads.html) >= 1.0
-- AWS CLI configured with appropriate credentials
+- [AWS CLI](https://aws.amazon.com/cli/) installed and configured with appropriate credentials
 - AWS account with permissions to create EKS clusters, VPCs, and related resources
-- kubectl installed and configured
-- Helm 3.x installed (for ArgoCD helm chart)
+- [kubectl](https://kubernetes.io/docs/tasks/tools/) installed and configured
+- [Helm](https://helm.sh/docs/intro/install/) 3.x installed (for ArgoCD helm chart)
 
 ## Configuration
 

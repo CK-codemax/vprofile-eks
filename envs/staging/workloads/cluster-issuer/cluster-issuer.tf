@@ -19,7 +19,7 @@ resource "kubernetes_manifest" "http01_production_cluster_issuer" {
           {
             http01 = {
               ingress = {
-                ingressClass = "external-nginx"
+                ingressClassName = "external-nginx"
               }
             }
           }
