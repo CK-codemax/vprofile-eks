@@ -5,6 +5,9 @@
 .PHONY: help init-s3 deploy-s3 migrate-s3-backend deploy-vpc deploy-eks deploy-infrastructure \
 	deploy-workloads deploy-all destroy-all destroy-workloads destroy-infrastructure \
 	plan-vpc plan-eks plan-workloads update-kubeconfig verify-cluster \
+	deploy-metrics-server deploy-cluster-autoscaler deploy-aws-lbc deploy-nginx-ingress \
+	deploy-cert-manager deploy-cluster-issuer deploy-ebs-csi-driver deploy-efs-csi-driver \
+	deploy-argocd deploy-argocd-ingress deploy-vprofile-app \
 	clean
 
 # Variables
@@ -43,6 +46,19 @@ help:
 	@echo "$(YELLOW)Workload Targets:$(NC)"
 	@echo "  make deploy-workloads      - Deploy all workloads sequentially"
 	@echo "  make deploy-all           - Deploy infrastructure + workloads"
+	@echo ""
+	@echo "$(YELLOW)Individual Workload Targets:$(NC)"
+	@echo "  make deploy-metrics-server    - Deploy metrics-server"
+	@echo "  make deploy-cluster-autoscaler - Deploy cluster-autoscaler"
+	@echo "  make deploy-aws-lbc           - Deploy AWS Load Balancer Controller"
+	@echo "  make deploy-nginx-ingress     - Deploy nginx-ingress"
+	@echo "  make deploy-cert-manager      - Deploy cert-manager"
+	@echo "  make deploy-cluster-issuer   - Deploy cluster-issuer"
+	@echo "  make deploy-ebs-csi-driver   - Deploy EBS CSI driver"
+	@echo "  make deploy-efs-csi-driver    - Deploy EFS CSI driver"
+	@echo "  make deploy-argocd            - Deploy ArgoCD"
+	@echo "  make deploy-argocd-ingress    - Deploy ArgoCD ingress"
+	@echo "  make deploy-vprofile-app      - Deploy vprofile-app"
 	@echo ""
 	@echo "$(YELLOW)Planning Targets:$(NC)"
 	@echo "  make plan-vpc             - Plan VPC changes"
@@ -167,6 +183,42 @@ deploy-all: deploy-infrastructure update-kubeconfig verify-cluster deploy-worklo
 	@echo "$(GREEN)========================================$(NC)"
 	@echo "$(GREEN)Complete deployment finished!$(NC)"
 	@echo "$(GREEN)========================================$(NC)"
+
+# ==============================================================================
+# Individual Workload Deployment Targets
+# ==============================================================================
+deploy-metrics-server:
+	$(call deploy-workload,metrics-server)
+
+deploy-cluster-autoscaler:
+	$(call deploy-workload,cluster-autoscaler)
+
+deploy-aws-lbc:
+	$(call deploy-workload,aws-lbc)
+
+deploy-nginx-ingress:
+	$(call deploy-workload,nginx-ingress)
+
+deploy-cert-manager:
+	$(call deploy-workload,cert-manager)
+
+deploy-cluster-issuer:
+	$(call deploy-workload,cluster-issuer)
+
+deploy-ebs-csi-driver:
+	$(call deploy-workload,ebs-csi-driver)
+
+deploy-efs-csi-driver:
+	$(call deploy-workload,efs-csi-driver)
+
+deploy-argocd:
+	$(call deploy-workload,argocd)
+
+deploy-argocd-ingress:
+	$(call deploy-workload,argocd-ingress)
+
+deploy-vprofile-app:
+	$(call deploy-workload,vprofile-app)
 
 # ==============================================================================
 # Planning Targets
