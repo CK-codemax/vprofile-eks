@@ -1,6 +1,12 @@
-resource "aws_efs_file_system" "eks" {
-  creation_token = "eks"
+# --------------------------
+# Declare EKS cluster (data or resource)
+# --------------------------
 
+# --------------------------
+# Create EFS file system
+# --------------------------
+resource "aws_efs_file_system" "eks" {
+  creation_token = "eks-${var.env}"
   performance_mode = "generalPurpose"
   throughput_mode  = "bursting"
   encrypted        = true
@@ -10,18 +16,19 @@ resource "aws_efs_mount_target" "zone_a" {
   file_system_id  = aws_efs_file_system.eks.id
   subnet_id       = data.terraform_remote_state.vpc.outputs.private_subnet_ids[0]
   security_groups = [data.terraform_remote_state.eks.outputs.cluster_security_group_id]
-
-  depends_on = [aws_efs_file_system.eks]
+  depends_on      = [aws_efs_file_system.eks]
 }
 
 resource "aws_efs_mount_target" "zone_b" {
   file_system_id  = aws_efs_file_system.eks.id
   subnet_id       = data.terraform_remote_state.vpc.outputs.private_subnet_ids[1]
   security_groups = [data.terraform_remote_state.eks.outputs.cluster_security_group_id]
-
-  depends_on = [aws_efs_file_system.eks]
+  depends_on      = [aws_efs_file_system.eks]
 }
 
+# --------------------------
+# IAM Role for EFS CSI Driver
+# --------------------------
 data "aws_iam_policy_document" "efs_csi_driver" {
   statement {
     actions = ["sts:AssumeRoleWithWebIdentity"]
@@ -30,7 +37,7 @@ data "aws_iam_policy_document" "efs_csi_driver" {
     condition {
       test     = "StringEquals"
       variable = "${replace(data.terraform_remote_state.eks.outputs.oidc_provider_url, "https://", "")}:sub"
-      values   = ["system:serviceaccount:kube-system:efs-csi-controller-sa"]
+      values   = ["system:serviceaccount:efs-csi-driver:efs-csi-controller-sa"]
     }
 
     principals {
@@ -50,24 +57,22 @@ resource "aws_iam_role_policy_attachment" "efs_csi_driver" {
   role       = aws_iam_role.efs_csi_driver.name
 }
 
-resource "kubernetes_namespace" "efs_csi_driver" {
-  metadata {
-    name = "efs-csi-driver"
-  }
-
-  depends_on = [
-    data.aws_eks_cluster.eks,
-    data.aws_eks_cluster_auth.eks
-  ]
-}
-
+# --------------------------
+# Helm deployment of EFS CSI Driver
+# --------------------------
 resource "helm_release" "efs_csi_driver" {
-  name       = "aws-efs-csi-driver"
-  repository = "https://kubernetes-sigs.github.io/aws-efs-csi-driver/"
-  chart      = "aws-efs-csi-driver"
-  namespace  = kubernetes_namespace.efs_csi_driver.metadata[0].name
-  version    = "3.0.3"
-  atomic     = true
+  name             = "aws-efs-csi-driver"
+  repository       = "https://kubernetes-sigs.github.io/aws-efs-csi-driver/"
+  chart            = "aws-efs-csi-driver"
+  create_namespace = true
+  namespace        = "efs-csi-driver"
+  version          = "3.0.3"
+  atomic           = true
+
+  set {
+    name  = "controller.serviceAccount.create"
+    value = "true"
+  }
 
   set {
     name  = "controller.serviceAccount.name"
@@ -76,35 +81,36 @@ resource "helm_release" "efs_csi_driver" {
 
   set {
     name  = "controller.serviceAccount.namespace"
-    value = "kube-system"
+    value = "efs-csi-driver"
   }
 
   set {
     name  = "controller.serviceAccount.annotations.eks\\.amazonaws\\.com/role-arn"
     value = aws_iam_role.efs_csi_driver.arn
   }
-
-  depends_on = [
-    aws_efs_mount_target.zone_a,
-    aws_efs_mount_target.zone_b,
-    kubernetes_namespace.efs_csi_driver
-  ]
 }
 
+# --------------------------
+# EFS StorageClass
+# --------------------------
 resource "kubernetes_storage_class_v1" "efs" {
   metadata {
     name = "efs"
+    annotations = {
+      "storageclass.kubernetes.io/is-default-class" = "true"
+    }
   }
 
   storage_provisioner = "efs.csi.aws.com"
 
   parameters = {
     provisioningMode = "efs-ap"
-    fileSystemId     = aws_efs_file_system.eks.id
+    fileSystemId     = aws_efs_file_system.eks.id   # <- this is correct now
     directoryPerms   = "700"
   }
 
-  mount_options = ["iam"]
+  mount_options  = ["iam"]
+  reclaim_policy = "Retain"
 
   depends_on = [helm_release.efs_csi_driver]
 }
