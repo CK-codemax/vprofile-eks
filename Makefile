@@ -142,7 +142,16 @@ deploy-workloads:
 	@echo "$(GREEN)Deploying EKS Workloads$(NC)"
 	@echo "$(GREEN)========================================$(NC)"
 	@echo ""
-	$(foreach workload,$(WORKLOADS),$(call deploy-workload,$(workload)))
+	$(call deploy-workload,metrics-server)
+	$(call deploy-workload,cluster-autoscaler)
+	$(call deploy-workload,aws-lbc)
+	$(call deploy-workload,nginx-ingress)
+	$(call deploy-workload,cert-manager)
+	$(call deploy-workload,ebs-csi-driver)
+	$(call deploy-workload,efs-csi-driver)
+	$(call deploy-workload,argocd)
+	$(call deploy-workload,argocd-ingress)
+	$(call deploy-workload,vprofile-app)
 	@echo "$(GREEN)========================================$(NC)"
 	@echo "$(GREEN)All workloads deployed successfully!$(NC)"
 	@echo "$(GREEN)========================================$(NC)"
