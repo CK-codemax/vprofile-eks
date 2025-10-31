@@ -147,10 +147,10 @@ deploy-workloads:
 	$(call deploy-workload,aws-lbc)
 	$(call deploy-workload,nginx-ingress)
 	$(call deploy-workload,cert-manager)
-	$(call deploy-workload,cluster-issuer)
 	$(call deploy-workload,ebs-csi-driver)
 	$(call deploy-workload,efs-csi-driver)
 	$(call deploy-workload,argocd)
+	$(call deploy-workload,cluster-issuer)
 	$(call deploy-workload,argocd-ingress)
 	$(call deploy-workload,vprofile-app)
 	@echo "$(GREEN)========================================$(NC)"
