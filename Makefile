@@ -70,7 +70,7 @@ deploy-s3:
 	@echo "$(GREEN)Deploying S3 backend...$(NC)"
 	@cd $(S3_DIR) && \
 		terraform init && \
-		terraform plan -var-file=../../../$(TFVARS) -out=tfplan && \
+		terraform plan -compact-warnings -var-file=../../../$(TFVARS) -out=tfplan && \
 		terraform apply -auto-approve tfplan && \
 		rm -f tfplan
 	@echo "$(GREEN)✓ S3 backend deployed$(NC)"
@@ -98,7 +98,7 @@ deploy-vpc:
 	@echo "$(GREEN)Deploying VPC...$(NC)"
 	@cd $(VPC_DIR) && \
 		terraform init -backend-config=../../$(STATE_CONFIG) && \
-		terraform plan -var-file=../../$(TFVARS) -out=tfplan && \
+		terraform plan -compact-warnings -var-file=../../$(TFVARS) -out=tfplan && \
 		terraform apply -auto-approve tfplan && \
 		rm -f tfplan
 	@echo "$(GREEN)✓ VPC deployed successfully$(NC)"
@@ -107,7 +107,7 @@ deploy-eks:
 	@echo "$(GREEN)Deploying EKS cluster...$(NC)"
 	@cd $(EKS_DIR) && \
 		terraform init -backend-config=../../$(STATE_CONFIG) && \
-		terraform plan -var-file=../../$(TFVARS) -out=tfplan && \
+		terraform plan -compact-warnings -var-file=../../$(TFVARS) -out=tfplan && \
 		terraform apply -auto-approve tfplan && \
 		rm -f tfplan
 	@echo "$(GREEN)✓ EKS cluster deployed successfully$(NC)"
@@ -130,7 +130,7 @@ define deploy-workload
 	@echo "$(YELLOW)Deploying $(1)...$(NC)"
 	@cd $(WORKLOADS_DIR)/$(1) && \
 		terraform init -backend-config=../../../../$(STATE_CONFIG) && \
-		terraform plan -var-file=../../../../$(TFVARS) -out=tfplan && \
+		terraform plan -compact-warnings -var-file=../../../../$(TFVARS) -out=tfplan && \
 		terraform apply -auto-approve tfplan && \
 		rm -f tfplan
 	@echo "$(GREEN)✓ $(1) deployed successfully$(NC)"
@@ -164,18 +164,18 @@ deploy-all: deploy-infrastructure update-kubeconfig verify-cluster deploy-worklo
 plan-vpc:
 	@cd $(VPC_DIR) && \
 		terraform init -backend-config=../../$(STATE_CONFIG) && \
-		terraform plan -var-file=../../$(TFVARS)
+		terraform plan -compact-warnings -var-file=../../$(TFVARS)
 
 plan-eks:
 	@cd $(EKS_DIR) && \
 		terraform init -backend-config=../../$(STATE_CONFIG) && \
-		terraform plan -var-file=../../$(TFVARS)
+		terraform plan -compact-warnings -var-file=../../$(TFVARS)
 
 define plan-workload
 	@echo "$(YELLOW)Planning $(1)...$(NC)"
 	@cd $(WORKLOADS_DIR)/$(1) && \
 		terraform init -backend-config=../../../../$(STATE_CONFIG) && \
-		terraform plan -var-file=../../../../$(TFVARS)
+		terraform plan -compact-warnings -var-file=../../../../$(TFVARS)
 	@echo ""
 endef
 
@@ -191,7 +191,7 @@ define destroy-workload
 	@echo "$(YELLOW)Destroying $(1)...$(NC)"
 	@cd $(WORKLOADS_DIR)/$(1) && \
 		terraform init -backend-config=../../../../$(STATE_CONFIG) && \
-		terraform destroy -var-file=../../../../$(TFVARS) -auto-approve
+		terraform destroy -compact-warnings -var-file=../../../../$(TFVARS) -auto-approve
 	@echo "$(GREEN)✓ $(1) destroyed$(NC)"
 	@echo ""
 endef
@@ -215,10 +215,10 @@ destroy-infrastructure:
 	@echo "$(RED)Destroying infrastructure...$(NC)"
 	@cd $(EKS_DIR) && \
 		terraform init -backend-config=../../$(STATE_CONFIG) && \
-		terraform destroy -var-file=../../$(TFVARS) -auto-approve
+		terraform destroy -compact-warnings -var-file=../../$(TFVARS) -auto-approve
 	@cd $(VPC_DIR) && \
 		terraform init -backend-config=../../$(STATE_CONFIG) && \
-		terraform destroy -var-file=../../$(TFVARS) -auto-approve
+		terraform destroy -compact-warnings -var-file=../../$(TFVARS) -auto-approve
 	@echo "$(GREEN)Infrastructure destroyed$(NC)"
 
 destroy-all: destroy-workloads destroy-infrastructure
