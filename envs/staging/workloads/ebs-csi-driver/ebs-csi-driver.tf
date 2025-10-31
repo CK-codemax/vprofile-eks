@@ -66,6 +66,9 @@ resource "aws_eks_addon" "ebs_csi_driver" {
 resource "kubernetes_storage_class_v1" "ebs_gp3" {
   metadata {
     name = "ebs-gp3"
+    annotations = {
+      "storageclass.kubernetes.io/is-default-class" = "true"
+    }
   }
 
   storage_provisioner     = "ebs.csi.aws.com"

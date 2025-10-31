@@ -26,37 +26,22 @@ This project creates:
 
 ## Configuration
 
-Each Terraform module has its own `tfvars` file containing only the variables it needs. This prevents warnings about undeclared variables and keeps configuration organized.
+This project uses a unified `terraform.tfvars` file at the root level (`terraform.tfvars`) that contains all configuration variables for all modules. This simplifies management and ensures consistency across all modules.
 
-**Module-specific tfvars files:**
-- **Global/S3**: `envs/global/s3/s3.tfvars` - Contains only `region` and `bucket`
-- **VPC**: `envs/staging/vpc/vpc.tfvars` - Contains VPC and networking configuration
-- **EKS**: `envs/staging/eks/eks.tfvars` - Contains EKS cluster configuration
-- **Workloads**: Each workload has its own `.tfvars` file:
-  - `metrics-server/metrics-server.tfvars`
-  - `cluster-autoscaler/cluster-autoscaler.tfvars`
-  - `aws-lbc/aws-lbc.tfvars`
-  - `nginx-ingress/nginx-ingress.tfvars`
-  - `cert-manager/cert-manager.tfvars`
-  - `ebs-csi-driver/ebs-csi-driver.tfvars`
-  - `efs-csi-driver/efs-csi-driver.tfvars`
-  - `argocd/argocd.tfvars`
-  - `argocd-ingress/argocd-ingress.tfvars`
-  - `vprofile-app/vprofile-app.tfvars`
-
-**Important:** There is no root `terraform.tfvars` file. Each module uses its own tfvars file, which prevents Terraform from auto-loading variables that modules don't declare.
+**Unified configuration file:**
+- **Root**: `terraform.tfvars` - Contains all variables for all modules organized by section
 
 **To modify configuration values:**
-- Edit the appropriate module's `*.tfvars` file
-- Each module only reads variables from its own tfvars file
-- No need to worry about undeclared variable warnings
+- Edit the root `terraform.tfvars` file
+- All modules will use variables from this unified file
 
 **Default values:**
 - **Environment**: staging
-- **Region**: us-east-2
-- **EKS Cluster Name**: demo (full name: staging-demo)
+- **Region**: us-west-2
+- **EKS Cluster Name**: demo3 (full name: staging-demo3)
 - **EKS Version**: 1.29
-- **Availability Zones**: us-east-2a, us-east-2b
+- **Availability Zones**: us-west-2a, us-west-2b
+- **S3 Bucket**: vprofile-move35623-add-terraform-state
 
 ## Commands
 
@@ -72,7 +57,7 @@ cd envs/global/s3
 terraform init
 
 # Apply to create S3 bucket
-terraform apply -var-file=s3.tfvars
+terraform apply -var-file=../../../terraform.tfvars
 
 # Reinitialize with backend configuration
 terraform init -migrate-state -backend-config=../../../state.config
@@ -88,10 +73,10 @@ cd ../../staging/vpc
 terraform init -backend-config=../../../state.config
 
 # Review planned changes
-terraform plan -var-file=vpc.tfvars
+terraform plan -var-file=../../../terraform.tfvars
 
 # Apply VPC configuration
-terraform apply -var-file=vpc.tfvars
+terraform apply -var-file=../../../terraform.tfvars
 ```
 
 ### Step 3: Deploy EKS Cluster
@@ -104,17 +89,17 @@ cd ../eks
 terraform init -backend-config=../../../state.config
 
 # Review planned changes
-terraform plan -var-file=eks.tfvars
+terraform plan -var-file=../../../terraform.tfvars
 
 # Apply EKS configuration (this will take 10-15 minutes)
-terraform apply -var-file=eks.tfvars
+terraform apply -var-file=../../../terraform.tfvars
 ```
 
 ### Step 4: Configure kubectl
 
 ```bash
 # Update kubeconfig to connect to your cluster
-aws eks update-kubeconfig --name staging-demo --region us-east-2
+aws eks update-kubeconfig --name staging-demo3 --region us-west-2
 
 # Verify cluster access
 kubectl get nodes
@@ -132,7 +117,7 @@ Workloads must be deployed in the correct order due to dependencies. Each worklo
 ```bash
 cd ../workloads/metrics-server
 terraform init -backend-config=../../../../state.config
-terraform apply -var-file=metrics-server.tfvars
+terraform apply -var-file=../../../../terraform.tfvars
 
 # Verify installation
 kubectl get pods -n metrics-server
@@ -143,7 +128,7 @@ kubectl get pods -n metrics-server
 ```bash
 cd ../cluster-autoscaler
 terraform init -backend-config=../../../../state.config
-terraform apply -var-file=cluster-autoscaler.tfvars
+terraform apply -var-file=../../../../terraform.tfvars
 
 # Verify installation
 kubectl get pods -n cluster-autoscaler
@@ -154,7 +139,7 @@ kubectl get pods -n cluster-autoscaler
 ```bash
 cd ../aws-lbc
 terraform init -backend-config=../../../../state.config
-terraform apply -var-file=aws-lbc.tfvars
+terraform apply -var-file=../../../../terraform.tfvars
 
 # Verify installation
 kubectl get pods -n aws-load-balancer-controller
@@ -165,7 +150,7 @@ kubectl get pods -n aws-load-balancer-controller
 ```bash
 cd ../nginx-ingress
 terraform init -backend-config=../../../../state.config
-terraform apply -var-file=nginx-ingress.tfvars
+terraform apply -var-file=../../../../terraform.tfvars
 
 # Verify installation (wait for LoadBalancer to be provisioned)
 kubectl get svc -n ingress-nginx
@@ -177,7 +162,7 @@ kubectl get pods -n ingress-nginx
 ```bash
 cd ../cert-manager
 terraform init -backend-config=../../../../state.config
-terraform apply -var-file=cert-manager.tfvars
+terraform apply -var-file=../../../../terraform.tfvars
 
 # Verify installation
 kubectl get pods -n cert-manager
@@ -188,7 +173,7 @@ kubectl get pods -n cert-manager
 ```bash
 cd ../ebs-csi-driver
 terraform init -backend-config=../../../../state.config
-terraform apply -var-file=ebs-csi-driver.tfvars
+terraform apply -var-file=../../../../terraform.tfvars
 
 # Verify installation
 kubectl get pods -n ebs-csi-driver
@@ -199,7 +184,7 @@ kubectl get pods -n ebs-csi-driver
 ```bash
 cd ../efs-csi-driver
 terraform init -backend-config=../../../../state.config
-terraform apply -var-file=efs-csi-driver.tfvars
+terraform apply -var-file=../../../../terraform.tfvars
 
 # Verify installation
 kubectl get pods -n efs-csi-driver
@@ -211,7 +196,7 @@ kubectl get storageclass efs
 ```bash
 cd ../argocd
 terraform init -backend-config=../../../../state.config
-terraform apply -var-file=argocd.tfvars
+terraform apply -var-file=../../../../terraform.tfvars
 
 # Wait for ArgoCD to be ready (this may take a few minutes)
 kubectl wait --for=condition=Ready pods -l app.kubernetes.io/name=argocd-server -n argocd --timeout=600s
@@ -225,7 +210,7 @@ kubectl get pods -n argocd
 ```bash
 cd ../argocd-ingress
 terraform init -backend-config=../../../../state.config
-terraform apply -var-file=argocd-ingress.tfvars
+terraform apply -var-file=../../../../terraform.tfvars
 
 # Verify ingress and certificate
 kubectl get ingress -n argocd
@@ -237,7 +222,7 @@ kubectl get certificate -n argocd
 ```bash
 cd ../vprofile-app
 terraform init -backend-config=../../../../state.config
-terraform apply -var-file=vprofile-app.tfvars
+terraform apply -var-file=../../../../terraform.tfvars
 
 # Verify ArgoCD application
 kubectl get application -n argocd
@@ -297,7 +282,7 @@ kubectl logs -f argocd-application-controller-0 -n argocd
 kubectl get all --all-namespaces
 
 # Check node groups
-aws eks describe-nodegroup --cluster-name staging-demo --nodegroup-name general --region us-east-2
+aws eks describe-nodegroup --cluster-name staging-demo3 --nodegroup-name general --region us-west-2
 ```
 
 ## AWS CLI and kubectl Commands
@@ -320,14 +305,14 @@ aws sts get-caller-identity
 ```bash
 # Update kubeconfig with specific profile
 aws eks update-kubeconfig \
-  --region us-east-2 \
-  --name staging-demo \
+  --region us-west-2 \
+  --name staging-demo3 \
   --profile developer
 
 # Update kubeconfig without profile (uses default credentials)
 aws eks update-kubeconfig \
-  --region us-east-2 \
-  --name staging-demo
+  --region us-west-2 \
+  --name staging-demo3
 
 # View full kubectl configuration
 kubectl config view
@@ -341,7 +326,7 @@ kubectl config view --minify
 ```bash
 # Assume IAM role for manager access
 aws sts assume-role \
-  --role-arn arn:aws:iam::424432388155:role/staging-demo-eks-admin \
+  --role-arn arn:aws:iam::424432388155:role/staging-demo3-eks-admin \
   --role-session-name manager-session \
   --profile manager
 ```
@@ -351,7 +336,7 @@ aws sts assume-role \
 ```bash
 # List available versions for Pod Identity addon
 aws eks describe-addon-versions \
-  --region us-east-2 \
+  --region us-west-2 \
   --addon-name eks-pod-identity-agent
 ```
 
@@ -369,6 +354,7 @@ curl -i --header "Host: ex6.antonputra.com" http://k8s-6example-myapp-c79dafe9b7
 
 ```
 .
+├── terraform.tfvars          # Unified configuration file (all variables)
 ├── state.config              # Backend configuration (region and bucket)
 ├── envs/
 │   ├── global/
@@ -376,7 +362,6 @@ curl -i --header "Host: ex6.antonputra.com" http://k8s-6example-myapp-c79dafe9b7
 │   │       ├── providers.tf
 │   │       ├── variables.tf
 │   │       ├── s3.tf
-│   │       ├── s3.tfvars     # S3-specific variables
 │   │       ├── state.tf
 │   │       └── outputs.tf
 │   └── staging/
@@ -384,7 +369,6 @@ curl -i --header "Host: ex6.antonputra.com" http://k8s-6example-myapp-c79dafe9b7
 │       │   ├── providers.tf
 │       │   ├── variables.tf
 │       │   ├── main.tf
-│       │   ├── vpc.tfvars    # VPC-specific variables
 │       │   ├── state.tf
 │       │   └── outputs.tf
 │       ├── eks/              # EKS module (cluster only)
@@ -392,7 +376,6 @@ curl -i --header "Host: ex6.antonputra.com" http://k8s-6example-myapp-c79dafe9b7
 │       │   ├── variables.tf
 │       │   ├── data.tf
 │       │   ├── eks.tf
-│       │   ├── eks.tfvars    # EKS-specific variables
 │       │   ├── nodes.tf
 │       │   ├── iam-users.tf
 │       │   ├── iam-roles.tf
@@ -406,7 +389,6 @@ curl -i --header "Host: ex6.antonputra.com" http://k8s-6example-myapp-c79dafe9b7
 │           │   ├── variables.tf
 │           │   ├── data.tf
 │           │   ├── metrics-server.tf
-│           │   ├── metrics-server.tfvars
 │           │   ├── state.tf
 │           │   ├── outputs.tf
 │           │   └── values/
@@ -416,7 +398,6 @@ curl -i --header "Host: ex6.antonputra.com" http://k8s-6example-myapp-c79dafe9b7
 │           │   ├── variables.tf
 │           │   ├── data.tf
 │           │   ├── cluster-autoscaler.tf
-│           │   ├── cluster-autoscaler.tfvars
 │           │   ├── state.tf
 │           │   └── outputs.tf
 │           ├── aws-lbc/
@@ -424,7 +405,6 @@ curl -i --header "Host: ex6.antonputra.com" http://k8s-6example-myapp-c79dafe9b7
 │           │   ├── variables.tf
 │           │   ├── data.tf
 │           │   ├── aws-lbc.tf
-│           │   ├── aws-lbc.tfvars
 │           │   ├── state.tf
 │           │   ├── outputs.tf
 │           │   └── iam/
@@ -434,7 +414,6 @@ curl -i --header "Host: ex6.antonputra.com" http://k8s-6example-myapp-c79dafe9b7
 │           │   ├── variables.tf
 │           │   ├── data.tf
 │           │   ├── nginx-ingress.tf
-│           │   ├── nginx-ingress.tfvars
 │           │   ├── state.tf
 │           │   ├── outputs.tf
 │           │   └── values/
@@ -444,7 +423,6 @@ curl -i --header "Host: ex6.antonputra.com" http://k8s-6example-myapp-c79dafe9b7
 │           │   ├── variables.tf
 │           │   ├── data.tf
 │           │   ├── cert-manager.tf
-│           │   ├── cert-manager.tfvars
 │           │   ├── state.tf
 │           │   └── outputs.tf
 │           ├── ebs-csi-driver/
@@ -452,7 +430,6 @@ curl -i --header "Host: ex6.antonputra.com" http://k8s-6example-myapp-c79dafe9b7
 │           │   ├── variables.tf
 │           │   ├── data.tf
 │           │   ├── ebs-csi-driver.tf
-│           │   ├── ebs-csi-driver.tfvars
 │           │   ├── state.tf
 │           │   └── outputs.tf
 │           ├── efs-csi-driver/
@@ -460,7 +437,6 @@ curl -i --header "Host: ex6.antonputra.com" http://k8s-6example-myapp-c79dafe9b7
 │           │   ├── variables.tf
 │           │   ├── data.tf
 │           │   ├── efs-csi-driver.tf
-│           │   ├── efs-csi-driver.tfvars
 │           │   ├── state.tf
 │           │   └── outputs.tf
 │           ├── argocd/
@@ -468,7 +444,6 @@ curl -i --header "Host: ex6.antonputra.com" http://k8s-6example-myapp-c79dafe9b7
 │           │   ├── variables.tf
 │           │   ├── data.tf
 │           │   ├── argocd.tf
-│           │   ├── argocd.tfvars
 │           │   ├── state.tf
 │           │   ├── outputs.tf
 │           │   └── values/
@@ -478,7 +453,6 @@ curl -i --header "Host: ex6.antonputra.com" http://k8s-6example-myapp-c79dafe9b7
 │           │   ├── variables.tf
 │           │   ├── data.tf
 │           │   ├── argocd-ingress.tf
-│           │   ├── argocd-ingress.tfvars
 │           │   ├── state.tf
 │           │   └── outputs.tf
 │           └── vprofile-app/
@@ -486,7 +460,6 @@ curl -i --header "Host: ex6.antonputra.com" http://k8s-6example-myapp-c79dafe9b7
 │               ├── variables.tf
 │               ├── data.tf
 │               ├── vprofile-app.tf
-│               ├── vprofile-app.tfvars
 │               ├── state.tf
 │               └── outputs.tf
 ```
@@ -499,56 +472,56 @@ curl -i --header "Host: ex6.antonputra.com" http://k8s-6example-myapp-c79dafe9b7
 # Destroy application workloads first
 cd envs/staging/workloads/vprofile-app
 terraform init -backend-config=../../../../state.config
-terraform destroy -var-file=vprofile-app.tfvars
+terraform destroy -var-file=../../../../terraform.tfvars
 
 cd ../argocd-ingress
 terraform init -backend-config=../../../../state.config
-terraform destroy -var-file=argocd-ingress.tfvars
+terraform destroy -var-file=../../../../terraform.tfvars
 
 # Destroy infrastructure workloads (in reverse order)
 cd ../argocd
 terraform init -backend-config=../../../../state.config
-terraform destroy -var-file=argocd.tfvars
+terraform destroy -var-file=../../../../terraform.tfvars
 
 cd ../efs-csi-driver
 terraform init -backend-config=../../../../state.config
-terraform destroy -var-file=efs-csi-driver.tfvars
+terraform destroy -var-file=../../../../terraform.tfvars
 
 cd ../ebs-csi-driver
 terraform init -backend-config=../../../../state.config
-terraform destroy -var-file=ebs-csi-driver.tfvars
+terraform destroy -var-file=../../../../terraform.tfvars
 
 cd ../cert-manager
 terraform init -backend-config=../../../../state.config
-terraform destroy -var-file=cert-manager.tfvars
+terraform destroy -var-file=../../../../terraform.tfvars
 
 cd ../nginx-ingress
 terraform init -backend-config=../../../../state.config
-terraform destroy -var-file=nginx-ingress.tfvars
+terraform destroy -var-file=../../../../terraform.tfvars
 
 cd ../aws-lbc
 terraform init -backend-config=../../../../state.config
-terraform destroy -var-file=aws-lbc.tfvars
+terraform destroy -var-file=../../../../terraform.tfvars
 
 cd ../cluster-autoscaler
 terraform init -backend-config=../../../../state.config
-terraform destroy -var-file=cluster-autoscaler.tfvars
+terraform destroy -var-file=../../../../terraform.tfvars
 
 cd ../metrics-server
 terraform init -backend-config=../../../../state.config
-terraform destroy -var-file=metrics-server.tfvars
+terraform destroy -var-file=../../../../terraform.tfvars
 
 # Destroy EKS cluster
 cd ../../eks
-terraform destroy -var-file=eks.tfvars
+terraform destroy -var-file=../../../terraform.tfvars
 
 # Destroy VPC
 cd ../vpc
-terraform destroy -var-file=vpc.tfvars
+terraform destroy -var-file=../../../terraform.tfvars
 
 # Destroy S3 backend (only if you want to remove state storage)
 cd ../../global/s3
-terraform destroy -var-file=s3.tfvars
+terraform destroy -var-file=../../../terraform.tfvars
 ```
 
 ## Notes
@@ -576,23 +549,23 @@ If you encounter an error that the S3 bucket already exists, you have three opti
 **Option A: Import the existing bucket** (recommended if you want to use it)
 ```bash
 cd envs/global/s3
-terraform import aws_s3_bucket.terraform_state vprofile-terraform-state
-terraform import aws_s3_bucket_versioning.terraform_state vprofile-terraform-state
-terraform import aws_s3_bucket_server_side_encryption_configuration.terraform_state vprofile-terraform-state
-terraform import aws_s3_bucket_public_access_block.terraform_state vprofile-terraform-state
+terraform import aws_s3_bucket.terraform_state vprofile-move35623-add-terraform-state
+terraform import aws_s3_bucket_versioning.terraform_state vprofile-move35623-add-terraform-state
+terraform import aws_s3_bucket_server_side_encryption_configuration.terraform_state vprofile-move35623-add-terraform-state
+terraform import aws_s3_bucket_public_access_block.terraform_state vprofile-move35623-add-terraform-state
 ```
 
 **Option B: Use a different bucket name**
-Edit `envs/global/s3/s3.tfvars` and change the bucket name to something unique.
+Edit `terraform.tfvars` at the root level and change the `bucket` variable to something unique.
 
 **Option C: Delete the existing bucket** (only if it's empty and you don't need it)
 ```bash
-aws s3 rb s3://vprofile-terraform-state --force
+aws s3 rb s3://vprofile-move35623-add-terraform-state --force
 ```
 
 ### Variable Warnings
 
-If you see warnings about undeclared variables, ensure you're using the module-specific tfvars files (e.g., `s3.tfvars`, `vpc.tfvars`, `eks.tfvars`) and not referencing a root `terraform.tfvars` file. Each module only accepts variables declared in its `variables.tf` file.
+If you see warnings about undeclared variables, ensure you're using the root `terraform.tfvars` file. Each module only accepts variables declared in its `variables.tf` file.
 
 ### Cannot connect to cluster
 ```bash
@@ -600,7 +573,7 @@ If you see warnings about undeclared variables, ensure you're using the module-s
 aws sts get-caller-identity
 
 # Update kubeconfig
-aws eks update-kubeconfig --name staging-demo --region us-east-2
+aws eks update-kubeconfig --name staging-demo3 --region us-west-2
 ```
 
 ### Pods stuck in Pending

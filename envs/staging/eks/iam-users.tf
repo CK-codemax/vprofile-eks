@@ -1,9 +1,9 @@
 resource "aws_iam_user" "developer" {
-  name = "developer2"
+  name = "developer3"
 }
 
 resource "aws_iam_policy" "developer_eks" {
-  name = "AmazonEKSDeveloperPolicy2"
+  name = "AmazonEKSDeveloperPolicy3"
 
   policy = <<POLICY
 {

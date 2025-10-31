@@ -15,3 +15,8 @@ variable "eks_cluster_name" {
   description = "Name of the Amazon EKS cluster."
 }
 
+
+variable "cert_manager_email" {
+  description = "Email address used for Let's Encrypt registration."
+  type        = string
+}

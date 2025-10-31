@@ -18,7 +18,7 @@ POLICY
 }
 
 resource "aws_iam_policy" "eks_admin" {
-  name = "AmazonEKSAdminPolicy2"
+  name = "AmazonEKSAdminPolicy3"
 
   policy = <<POLICY
 {
@@ -52,11 +52,11 @@ resource "aws_iam_role_policy_attachment" "eks_admin" {
 }
 
 resource "aws_iam_user" "manager" {
-  name = "manager2"
+  name = "manager3"
 }
 
 resource "aws_iam_policy" "eks_assume_admin" {
-  name = "AmazonEKSAssumeAdminPolicy2"
+  name = "AmazonEKSAssumeAdminPolicy3"
 
   policy = <<POLICY
 {

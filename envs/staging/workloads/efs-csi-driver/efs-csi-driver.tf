@@ -96,9 +96,6 @@ resource "helm_release" "efs_csi_driver" {
 resource "kubernetes_storage_class_v1" "efs" {
   metadata {
     name = "efs"
-    annotations = {
-      "storageclass.kubernetes.io/is-default-class" = "true"
-    }
   }
 
   storage_provisioner = "efs.csi.aws.com"

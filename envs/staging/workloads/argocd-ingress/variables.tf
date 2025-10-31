@@ -26,8 +26,3 @@ variable "argocd_cert_issuer" {
 variable "argocd_cert_secret_name" {
   description = "Secret name for ArgoCD certificate."
 }
-
-variable "cert_manager_email" {
-  description = "Email address used for Let's Encrypt registration."
-  type        = string
-}
