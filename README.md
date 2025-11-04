@@ -416,11 +416,10 @@ kubectl get ingress --all-namespaces -o wide
 ### Update DNS Records
 
 1. **For ArgoCD**: Point your domain (e.g., `argo.ochukowhoro.xyz`) to the ArgoCD ingress load balancer address
-2. **For Applications**: Point your application domains to the Nginx Ingress Controller load balancer address
+2. **For Applications**: Point your application domains(e.g., `vprofile.ochukowhoro.xyz`) to the Nginx Ingress Controller load balancer address
 
 **Important**: 
-- Use **CNAME** records pointing to the load balancer hostname (recommended)
-- Or use **A** records with the load balancer IP address
+- Use **CNAME** records pointing to the load balancer hostname
 - DNS propagation may take a few minutes
 - Cert-manager will automatically provision TLS certificates once DNS is configured correctly
 
