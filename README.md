@@ -495,4 +495,4 @@ kubectl get certificate -n argocd
 
 ## References
 
-- [Argo vprofile appp](https://github.com/CK-codemax/argo-project-defs.git)
+- [Argo vprofile appp](https://github.com/OchukoWH/argo-project-defs.git)

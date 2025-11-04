@@ -17,7 +17,7 @@ variable "eks_cluster_name" {
 
 variable "argocd_app_repo_url" {
   description = "GitHub repository URL for the ArgoCD application."
-  default     = "https://github.com/CK-codemax/argo-project-defs.git"
+  default     = "https://github.com/OchukoWH/argo-project-defs.git"
 }
 
 variable "argocd_app_repo_target_revision" {

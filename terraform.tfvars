@@ -47,7 +47,7 @@ cert_manager_email = "admin@ochukowhoro.xyz"
 # ==============================================================================
 # ArgoCD Application Variables
 # ==============================================================================
-argocd_app_repo_url            = "https://github.com/CK-codemax/argo-project-defs.git"
+argocd_app_repo_url            = "https://github.com/OchukoWH/argo-project-defs.git"
 argocd_app_repo_target_revision = "amazon-eks"
 argocd_app_source_path         = "vprofile"
 argocd_app_destination_namespace = "vprofile"
