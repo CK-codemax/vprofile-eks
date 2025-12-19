@@ -4,10 +4,10 @@ on:
   push:
     branches:
       - main
-    paths:
-      - '.github/workflows/vpc.yml'
-      - 'Makefile'
-      - 'envs/staging/vpc/**'
+    # paths:
+    #   - '.github/workflows/vpc.yml'
+    #   - 'Makefile'
+    #   - 'envs/staging/vpc/**'
   workflow_dispatch:
 
 jobs:

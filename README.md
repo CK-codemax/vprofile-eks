@@ -324,6 +324,7 @@ Make sure the values of these secrets match what you would normally put in `terr
 
 - A **self-hosted Ubuntu runner** registered with your GitHub repository/organization.
 - The runner must have:
+  - `make` installed (required for running deployment commands).
   - `terraform` installed (version compatible with this project).
   - `aws` CLI installed and configured.
   - `docker` installed with the ubuntu user added to the docker group (to run docker without sudo).
