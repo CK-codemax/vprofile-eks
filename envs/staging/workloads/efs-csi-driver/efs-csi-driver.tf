@@ -6,7 +6,7 @@
 # Create EFS file system
 # --------------------------
 resource "aws_efs_file_system" "eks" {
-  creation_token = var.efs_creation_token
+  creation_token = "${var.env}-${var.eks_cluster_name}-efs"
   performance_mode = "generalPurpose"
   throughput_mode  = "bursting"
   encrypted        = true

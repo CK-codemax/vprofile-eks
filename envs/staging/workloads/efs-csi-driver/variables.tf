@@ -15,8 +15,3 @@ variable "eks_cluster_name" {
   description = "Name of the Amazon EKS cluster."
 }
 
-variable "efs_creation_token" {
-  description = "Creation token for the EFS file system. Must be unique."
-  type        = string
-}
-

@@ -34,19 +34,19 @@ resource "aws_iam_role_policy_attachment" "amazon_ec2_container_registry_read_on
 
 resource "aws_eks_node_group" "general" {
   cluster_name    = aws_eks_cluster.eks.name
-  version         = var.eks_version
+  version         = "1.29"
   node_group_name = "general"
   node_role_arn   = aws_iam_role.nodes.arn
 
   subnet_ids = data.terraform_remote_state.vpc.outputs.private_subnet_ids
 
   capacity_type  = "ON_DEMAND"
-  instance_types = var.general_nodes_ec2_types
+  instance_types = ["t3.large"]
 
   scaling_config {
-    desired_size = var.general_nodes_desired_size
-    max_size     = var.general_nodes_max_size
-    min_size     = var.general_nodes_min_size
+    desired_size = 1
+    max_size     = 10
+    min_size     = 0
   }
 
   update_config {

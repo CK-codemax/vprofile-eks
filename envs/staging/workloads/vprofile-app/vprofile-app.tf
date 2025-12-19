@@ -3,7 +3,7 @@ resource "kubernetes_manifest" "vprofile_project" {
     apiVersion = "argoproj.io/v1alpha1"
     kind       = "AppProject"
     metadata = {
-      name      = var.argocd_project_name
+      name      = "vprofile-project"
       namespace = "argocd"
     }
     spec = {
@@ -35,19 +35,19 @@ resource "kubernetes_manifest" "vprofile_app" {
     apiVersion = "argoproj.io/v1alpha1"
     kind       = "Application"
     metadata = {
-      name      = var.argocd_app_name
+      name      = "vprofile-app"
       namespace = "argocd"
     }
     spec = {
       destination = {
-        namespace = var.argocd_app_destination_namespace
+        namespace = "vprofile"
         server    = "https://kubernetes.default.svc"
       }
-      project = var.argocd_project_name
+      project = "vprofile-project"
       source = {
-        path           = var.argocd_app_source_path
-        repoURL        = var.argocd_app_repo_url
-        targetRevision = var.argocd_app_repo_target_revision
+        path           = "vprofile"
+        repoURL        = "https://github.com/OchukoWH/argo-project-defs.git"
+        targetRevision = "amazon-eks"
       }
       syncPolicy = {
         automated = {

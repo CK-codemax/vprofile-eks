@@ -10,70 +10,12 @@ variable "eks_cluster_name" {
   description = "Name of the Amazon EKS cluster."
 }
 
-variable "eks_version" {
-  description = "Amazon EKS cluster version."
-}
-
-variable "general_nodes_ec2_types" {
-  description = "EC2 instance type for the general node group."
-  type        = list(string)
-}
-
-variable "general_nodes_desired_size" {
-  description = "Desired size of the general node group."
-}
-
-variable "general_nodes_max_size" {
-  description = "Maximum size of the general node group."
-}
-
-variable "general_nodes_min_size" {
-  description = "Minimum size of the general node group."
-}
-
 variable "terraform_s3_bucket" {
   type        = string
   description = "An S3 bucket to store the Terraform state."
 }
 
-variable "argocd_domain" {
-  description = "Domain for ArgoCD ingress."
-}
-
-variable "argocd_cert_issuer" {
-  description = "Cert-manager cluster issuer for ArgoCD."
-}
-
-variable "argocd_cert_secret_name" {
-  description = "Secret name for ArgoCD certificate."
-}
-
 variable "aws_region" {
   description = "AWS region (for cluster autoscaler)."
-}
-
-variable "eks_admin_policy_name" {
-  description = "Name of the IAM policy for EKS admin access."
-  type        = string
-}
-
-variable "manager_user_name" {
-  description = "Name of the IAM user for manager role."
-  type        = string
-}
-
-variable "eks_assume_admin_policy_name" {
-  description = "Name of the IAM policy for assuming EKS admin role."
-  type        = string
-}
-
-variable "developer_user_name" {
-  description = "Name of the IAM user for developer role."
-  type        = string
-}
-
-variable "developer_eks_policy_name" {
-  description = "Name of the IAM policy for EKS developer access."
-  type        = string
 }
 

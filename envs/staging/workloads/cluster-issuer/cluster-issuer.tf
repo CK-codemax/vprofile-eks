@@ -10,7 +10,7 @@ resource "kubernetes_manifest" "http01_production_cluster_issuer" {
     }
     spec = {
       acme = {
-        email  = var.cert_manager_email
+        email  = "admin@ochukowhoro.xyz"
         server = "https://acme-v02.api.letsencrypt.org/directory"
         privateKeySecretRef = {
           name = "http-01-production-cluster-issuer"

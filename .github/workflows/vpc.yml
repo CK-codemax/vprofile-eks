@@ -1,0 +1,42 @@
+name: VPC Infrastructure
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/vpc.yml'
+      - 'Makefile'
+      - 'envs/staging/vpc/**'
+  workflow_dispatch:
+
+jobs:
+  deploy-vpc:
+    name: Deploy VPC (Terraform)
+    runs-on: self-hosted
+
+    env:
+      # Terraform backend configuration (must be provided as GitHub Secrets)
+      TF_BACKEND_BUCKET: ${{ secrets.TF_BACKEND_BUCKET }}
+      TF_BACKEND_REGION: ${{ secrets.TF_BACKEND_REGION }}
+
+      # Terraform variable environment (must be provided as GitHub Secrets)
+      TF_VAR_env: ${{ secrets.TF_VAR_env }}
+      TF_VAR_region: ${{ secrets.TF_VAR_region }}
+      TF_VAR_terraform_s3_bucket: ${{ secrets.TF_VAR_terraform_s3_bucket }}
+      TF_VAR_eks_cluster_name: ${{ secrets.TF_VAR_eks_cluster_name }}
+      TF_VAR_aws_region: ${{ secrets.TF_VAR_aws_region }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # AWS credentials are provided via EC2 instance role (see README for setup instructions)
+      - name: Verify AWS identity
+        run: aws sts get-caller-identity
+
+      - name: Deploy VPC via Makefile (CI mode)
+        run: |
+          make deploy-vpc-ci
+
+

@@ -24,7 +24,7 @@ resource "aws_iam_role_policy_attachment" "eks" {
 
 resource "aws_eks_cluster" "eks" {
   name     = "${var.env}-${var.eks_cluster_name}"
-  version  = var.eks_version
+  version  = "1.29"
   role_arn = aws_iam_role.eks.arn
 
   vpc_config {

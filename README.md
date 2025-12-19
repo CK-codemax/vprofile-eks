@@ -241,25 +241,160 @@ Workloads are deployed as separate Terraform modules, each with its own state fi
 - [kubectl](https://kubernetes.io/docs/tasks/tools/) installed
 - [Helm](https://helm.sh/docs/intro/install/) 3.x installed
 
-## Quick Start
+## Quick Start (Local Deployment)
 
 ```bash
-# 1. Deploy S3 backend
+# 1. Deploy S3 backend (state bucket) - run from your terminal only
 make deploy-s3
 
-# 2. Deploy infrastructure (VPC + EKS)
+# 2. (Optional, once backend config is uncommented) Migrate existing local state to S3
+make migrate-s3-backend
+
+# 3. Deploy infrastructure (VPC + EKS)
 make deploy-infrastructure
 
-# 3. Update kubectl config
+# 4. Update kubectl config
 make update-kubeconfig
 make verify-cluster
 
-# 4. Deploy all workloads
+# 5. Deploy all workloads
 make deploy-workloads
 
 # Or deploy everything:
 make deploy-all
 ```
+
+**Important**:
+- **Backend S3 bucket and state migration must always be created/managed from your terminal**, not from GitHub Actions.
+- GitHub Actions workflows only operate on the **VPC**, **EKS**, and **workloads** Terraform modules and reuse the existing remote state.
+
+## CI/CD with GitHub Actions (Self-Hosted Runner)
+
+This project also supports automated deployment using **GitHub Actions** and a **self-hosted Ubuntu runner**. The Actions workflows call dedicated CI Make targets that rely on `TF_VAR_*` environment variables instead of `terraform.tfvars`.
+
+### Overview
+
+- **Local deployment**:
+  - Uses `terraform.tfvars` for configuration.
+  - Uses standard Make targets: `make deploy-vpc`, `make deploy-eks`, `make deploy-workloads`, etc.
+- **GitHub Actions deployment**:
+  - Uses `TF_VAR_*` environment variables / secrets (one per variable in `terraform.tfvars`).
+  - Uses CI-specific Make targets:
+    - `make deploy-vpc-ci`
+    - `make deploy-eks-ci`
+    - `make deploy-workloads-ci`
+  - Runs only after a **PR is approved and merged to `main`** (push to `main`).
+
+### Required GitHub Actions Secrets
+
+#### Backend Configuration Secrets
+
+These secrets are required for Terraform backend initialization (S3 state storage) and must be configured in all GitHub Actions workflows:
+
+- `TF_BACKEND_BUCKET` - The S3 bucket name for storing Terraform state (e.g., `vprofile-ochuko`)
+- `TF_BACKEND_REGION` - The AWS region where the S3 bucket is located (e.g., `us-east-2`)
+
+These values should match what you have in your `state.config` file for local deployments.
+
+**Important**: These backend configuration secrets are used by all three workflows (VPC, EKS, and Workloads) to initialize Terraform with the S3 backend.
+
+#### Required TF_VAR Secrets
+
+For GitHub Actions, create repository or organization secrets for each Terraform variable, prefixed with `TF_VAR_`. Example mapping from `terraform.tfvars`:
+
+- **Environment & Regions**
+  - `TF_VAR_env`
+  - `TF_VAR_region`
+  - `TF_VAR_terraform_s3_bucket`
+  - `TF_VAR_eks_cluster_name`
+  - `TF_VAR_aws_region`
+
+Make sure the values of these secrets match what you would normally put in `terraform.tfvars` for local runs.
+
+**Note**: VPC networking configuration (CIDR blocks, availability zones), EKS cluster version, node group configuration (instance types, scaling), ArgoCD configuration (domain, cert issuer, app settings), Cert-Manager email, IAM policy names, user names, and EFS creation tokens are now hardcoded in the Terraform modules and do not need to be provided as secrets.
+
+**To customize these values**, edit the following Terraform files directly:
+- **VPC/Networking**: `envs/staging/vpc/main.tf`
+- **EKS Configuration**: `envs/staging/eks/eks.tf` and `envs/staging/eks/nodes.tf`
+- **ArgoCD Ingress**: `envs/staging/workloads/argocd-ingress/argocd-ingress.tf`
+- **Cert-Manager**: `envs/staging/workloads/cluster-issuer/cluster-issuer.tf`
+- **ArgoCD Application**: `envs/staging/workloads/vprofile-app/vprofile-app.tf`
+
+### Self-Hosted Runner Requirements
+
+- A **self-hosted Ubuntu runner** registered with your GitHub repository/organization.
+- The runner must have:
+  - `terraform` installed (version compatible with this project).
+  - `aws` CLI installed and configured.
+  - `docker` installed with the ubuntu user added to the docker group (to run docker without sudo).
+  - `kubectl` and `helm` if you want to run verification commands from Actions (optional).
+
+The workflows use `runs-on: self-hosted` so they will execute on your own runner instead of GitHub-hosted runners.
+
+#### EC2 Instance Role Configuration
+
+**Important**: The self-hosted runner should be deployed on an **EC2 instance with an IAM instance role** attached. This is the recommended and secure way to provide AWS credentials to the runner.
+
+**Required IAM Permissions**
+
+The EC2 instance role must have **AdministratorAccess** to manage all AWS resources required for this infrastructure.
+
+**Setting Up the Self-Hosted Runner**
+
+Please refer to the official documentation for detailed setup instructions:
+
+- **IAM Roles for EC2**: [AWS Documentation - Using IAM Roles for EC2](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/iam-roles-for-amazon-ec2.html)
+- **EC2 Instance Launch**: [AWS Documentation - Launching an Instance](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/LaunchingAndUsingInstances.html)
+- **Terraform Installation**: [Terraform Installation Guide](https://developer.hashicorp.com/terraform/downloads)
+- **AWS CLI Installation**: [AWS CLI Installation Guide](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html)
+- **Docker Installation**: [Docker Engine Installation Guide](https://docs.docker.com/engine/install/ubuntu/)
+- **GitHub Actions Self-Hosted Runners**: [GitHub Documentation - Self-Hosted Runners](https://docs.github.com/en/actions/hosting-your-own-runners/managing-self-hosted-runners/about-self-hosted-runners)
+
+**Required Setup**:
+- Create an EC2 instance (Ubuntu 22.04 LTS or later) with an IAM role attached that has AdministratorAccess
+- Install Terraform, AWS CLI, and Docker on the instance
+- Ensure the ubuntu user can run Docker without sudo (add to docker group)
+- Register the GitHub Actions runner following the official GitHub documentation
+
+### GitHub Actions Workflows
+
+Three workflows are provided under `.github/workflows/` and are designed to reflect the dependency order of the Terraform modules:
+
+- **VPC Workflow** (`vpc.yml`)
+  - Trigger: `push` to `main` when VPC or shared config files change.
+  - Runner: `self-hosted`.
+  - Command: `make deploy-vpc-ci`.
+
+- **EKS Workflow** (`eks.yml`)
+  - Trigger: `push` to `main` when EKS or shared config files change.
+  - Runner: `self-hosted`.
+  - Command: `make deploy-eks-ci`.
+  - **Depends on** VPC state existing in the remote backend.
+
+- **Workloads Workflow** (`workloads.yml`)
+  - Trigger: `push` to `main` when workloads or shared config files change.
+  - Runner: `self-hosted`.
+  - Command: `make deploy-workloads-ci`.
+  - **Depends on** EKS state existing in the remote backend.
+
+Although GitHub Actions workflows cannot have hard cross-workflow dependencies, the Terraform modules themselves depend on each other via remote state:
+
+- VPC must exist before EKS can be deployed.
+- EKS must exist before workloads can be deployed.
+
+When making changes that span multiple layers (e.g., VPC and EKS), create a PR that includes all relevant Terraform changes, get it **approved by an administrator**, and let the workflows run in the expected order after merge. You can always manually re-run a workflow from the GitHub UI if needed.
+
+### Branch Protection and PR Flow
+
+To ensure that infrastructure changes are always reviewed:
+
+- **Protect the `main` branch** in your GitHub repository:
+  - Disallow direct pushes to `main`.
+  - Require pull request reviews (ideally from an administrator) before merging.
+- Configure your PR workflow so that:
+  - Developers open PRs from feature branches.
+  - An administrator reviews and approves.
+  - Once merged into `main`, the appropriate GitHub Actions workflows run automatically and apply the Terraform changes using the CI Make targets.
 
 ## How the Makefile Works
 

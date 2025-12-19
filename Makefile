@@ -8,6 +8,7 @@
 	deploy-metrics-server deploy-cluster-autoscaler deploy-aws-lbc deploy-nginx-ingress \
 	deploy-cert-manager deploy-cluster-issuer deploy-ebs-csi-driver deploy-efs-csi-driver \
 	deploy-argocd deploy-argocd-ingress deploy-vprofile-app \
+	deploy-vpc-ci deploy-eks-ci deploy-workloads-ci \
 	clean
 
 # Variables
@@ -42,9 +43,12 @@ help:
 	@echo "  make deploy-vpc           - Deploy VPC infrastructure"
 	@echo "  make deploy-eks           - Deploy EKS cluster"
 	@echo "  make deploy-infrastructure - Deploy VPC and EKS sequentially"
+	@echo "  make deploy-vpc-ci        - Deploy VPC (CI mode, uses TF_VAR_* env)"
+	@echo "  make deploy-eks-ci        - Deploy EKS (CI mode, uses TF_VAR_* env)"
 	@echo ""
 	@echo "$(YELLOW)Workload Targets:$(NC)"
 	@echo "  make deploy-workloads      - Deploy all workloads sequentially"
+	@echo "  make deploy-workloads-ci   - Deploy all workloads sequentially (CI mode, uses TF_VAR_* env)"
 	@echo "  make deploy-all           - Deploy infrastructure + workloads"
 	@echo ""
 	@echo "$(YELLOW)Individual Workload Targets:$(NC)"
@@ -104,7 +108,7 @@ deploy-s3:
 migrate-s3-backend:
 	@echo "$(GREEN)Migrating S3 backend state...$(NC)"
 	@cd $(S3_DIR) && \
-		echo "yes" | terraform init -input=false -migrate-state -backend-config=../../../$(STATE_CONFIG)
+		echo "yes" | terraform init -migrate-state -backend-config=../../../$(STATE_CONFIG)
 	@echo "$(GREEN)✓ S3 backend state migrated$(NC)"
 
 # ==============================================================================
@@ -119,6 +123,19 @@ deploy-vpc:
 		rm -f tfplan
 	@echo "$(GREEN)✓ VPC deployed successfully$(NC)"
 
+deploy-vpc-ci:
+	@echo "$(GREEN)Deploying VPC (CI mode, using TF_VAR_* env)...$(NC)"
+	@if [ -z "$(TF_BACKEND_BUCKET)" ] || [ -z "$(TF_BACKEND_REGION)" ]; then \
+		echo "$(RED)Error: TF_BACKEND_BUCKET and TF_BACKEND_REGION must be set$(NC)"; \
+		exit 1; \
+	fi
+	@cd $(VPC_DIR) && \
+		terraform init -backend-config="bucket=$(TF_BACKEND_BUCKET)" -backend-config="region=$(TF_BACKEND_REGION)" && \
+		terraform plan -compact-warnings -out=tfplan && \
+		terraform apply -auto-approve tfplan && \
+		rm -f tfplan
+	@echo "$(GREEN)✓ VPC deployed successfully (CI mode)$(NC)"
+
 deploy-eks:
 	@echo "$(GREEN)Deploying EKS cluster...$(NC)"
 	@cd $(EKS_DIR) && \
@@ -127,6 +144,19 @@ deploy-eks:
 		terraform apply -auto-approve tfplan && \
 		rm -f tfplan
 	@echo "$(GREEN)✓ EKS cluster deployed successfully$(NC)"
+
+deploy-eks-ci:
+	@echo "$(GREEN)Deploying EKS cluster (CI mode, using TF_VAR_* env)...$(NC)"
+	@if [ -z "$(TF_BACKEND_BUCKET)" ] || [ -z "$(TF_BACKEND_REGION)" ]; then \
+		echo "$(RED)Error: TF_BACKEND_BUCKET and TF_BACKEND_REGION must be set$(NC)"; \
+		exit 1; \
+	fi
+	@cd $(EKS_DIR) && \
+		terraform init -backend-config="bucket=$(TF_BACKEND_BUCKET)" -backend-config="region=$(TF_BACKEND_REGION)" && \
+		terraform plan -compact-warnings -out=tfplan && \
+		terraform apply -auto-approve tfplan && \
+		rm -f tfplan
+	@echo "$(GREEN)✓ EKS cluster deployed successfully (CI mode)$(NC)"
 
 deploy-infrastructure: deploy-vpc deploy-eks
 	@echo "$(GREEN)========================================$(NC)"
@@ -150,6 +180,22 @@ define deploy-workload
 		terraform apply -auto-approve tfplan && \
 		rm -f tfplan
 	@echo "$(GREEN)✓ $(1) deployed successfully$(NC)"
+	@echo ""
+endef
+
+define deploy-workload-ci
+	@echo "$(BLUE)━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━$(NC)"
+	@echo "$(YELLOW)Deploying $(1) (CI mode, using TF_VAR_* env)...$(NC)"
+	@if [ -z "$(TF_BACKEND_BUCKET)" ] || [ -z "$(TF_BACKEND_REGION)" ]; then \
+		echo "$(RED)Error: TF_BACKEND_BUCKET and TF_BACKEND_REGION must be set$(NC)"; \
+		exit 1; \
+	fi
+	@cd $(WORKLOADS_DIR)/$(1) && \
+		terraform init -backend-config="bucket=$(TF_BACKEND_BUCKET)" -backend-config="region=$(TF_BACKEND_REGION)" && \
+		terraform plan -compact-warnings -out=tfplan && \
+		terraform apply -auto-approve tfplan && \
+		rm -f tfplan
+	@echo "$(GREEN)✓ $(1) deployed successfully (CI mode)$(NC)"
 	@echo ""
 endef
 
@@ -178,6 +224,27 @@ deploy-workloads:
 	@echo "  kubectl get ingress -n argocd"
 	@echo "  kubectl get certificate -n argocd"
 	@echo "  kubectl get application -n argocd"
+
+deploy-workloads-ci:
+	@echo "$(GREEN)========================================$(NC)"
+	@echo "$(GREEN)Deploying EKS Workloads (CI mode)$(NC)"
+	@echo "$(GREEN)========================================$(NC)"
+	@echo ""
+	$(call deploy-workload-ci,metrics-server)
+	$(call deploy-workload-ci,cluster-autoscaler)
+	$(call deploy-workload-ci,aws-lbc)
+	$(call deploy-workload-ci,nginx-ingress)
+	$(call deploy-workload-ci,cert-manager)
+	$(call deploy-workload-ci,ebs-csi-driver)
+	$(call deploy-workload-ci,efs-csi-driver)
+	$(call deploy-workload-ci,argocd)
+	$(call deploy-workload-ci,cluster-issuer)
+	$(call deploy-workload-ci,argocd-ingress)
+	$(call deploy-workload-ci,vprofile-app)
+	@echo "$(GREEN)========================================$(NC)"
+	@echo "$(GREEN)All workloads deployed successfully (CI mode)!$(NC)"
+	@echo "$(GREEN)========================================$(NC)"
+	@echo ""
 
 deploy-all: deploy-infrastructure update-kubeconfig verify-cluster deploy-workloads
 	@echo "$(GREEN)========================================$(NC)"

@@ -6,7 +6,7 @@ resource "kubernetes_manifest" "argocd_ingress" {
       name      = "argocd-server-ingress"
       namespace = "argocd"
       annotations = {
-        "cert-manager.io/cluster-issuer" = var.argocd_cert_issuer
+        "cert-manager.io/cluster-issuer" = "http-01-production"
       }
     }
 
@@ -14,7 +14,7 @@ resource "kubernetes_manifest" "argocd_ingress" {
       ingressClassName = "external-nginx"
       rules = [
         {
-          host = var.argocd_domain
+          host = "argo.ochukowhoro.xyz"
           http = {
             paths = [
               {
@@ -35,8 +35,8 @@ resource "kubernetes_manifest" "argocd_ingress" {
       ]
       tls = [
         {
-          hosts       = [var.argocd_domain]
-          secretName  = var.argocd_cert_secret_name
+          hosts       = ["argo.ochukowhoro.xyz"]
+          secretName  = "argo-ochukowhoro-xyz"
         }
       ]
     }

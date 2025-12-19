@@ -14,15 +14,3 @@ variable "env" {
 variable "eks_cluster_name" {
   description = "Name of the Amazon EKS cluster."
 }
-
-variable "argocd_domain" {
-  description = "Domain for ArgoCD ingress."
-}
-
-variable "argocd_cert_issuer" {
-  description = "Cert-manager cluster issuer for ArgoCD."
-}
-
-variable "argocd_cert_secret_name" {
-  description = "Secret name for ArgoCD certificate."
-}
