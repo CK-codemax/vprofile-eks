@@ -16,16 +16,16 @@ jobs:
     runs-on: self-hosted
 
     env:
-      # Terraform backend configuration (must be provided as GitHub Secrets)
-      TF_BACKEND_BUCKET: ${{ secrets.TF_BACKEND_BUCKET }}
-      TF_BACKEND_REGION: ${{ secrets.TF_BACKEND_REGION }}
+      # Terraform backend configuration (must be provided as GitHub Variables)
+      TF_BACKEND_BUCKET: ${{ vars.TF_BACKEND_BUCKET }}
+      TF_BACKEND_REGION: ${{ vars.TF_BACKEND_REGION }}
 
-      # Terraform variable environment (must be provided as GitHub Secrets)
-      TF_VAR_env: ${{ secrets.TF_VAR_env }}
-      TF_VAR_region: ${{ secrets.TF_VAR_region }}
-      TF_VAR_terraform_s3_bucket: ${{ secrets.TF_VAR_terraform_s3_bucket }}
-      TF_VAR_eks_cluster_name: ${{ secrets.TF_VAR_eks_cluster_name }}
-      TF_VAR_aws_region: ${{ secrets.TF_VAR_aws_region }}
+      # Terraform variable environment (must be provided as GitHub Variables)
+      TF_VAR_env: ${{ vars.TF_VAR_ENV }}
+      TF_VAR_region: ${{ vars.TF_VAR_REGION }}
+      TF_VAR_terraform_s3_bucket: ${{ vars.TF_VAR_TERRAFORM_S3_BUCKET }}
+      TF_VAR_eks_cluster_name: ${{ vars.TF_VAR_EKS_CLUSTER_NAME }}
+      TF_VAR_aws_region: ${{ vars.TF_VAR_AWS_REGION }}
 
     steps:
       - name: Checkout repository

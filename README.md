@@ -287,20 +287,24 @@ This project also supports automated deployment using **GitHub Actions** and a *
 
 ### Required GitHub Actions Secrets
 
-#### Backend Configuration Secrets
+#### Backend Configuration Variables
 
-These secrets are required for Terraform backend initialization (S3 state storage) and must be configured in all GitHub Actions workflows:
+These repository variables are required for Terraform backend initialization (S3 state storage) and must be configured in all GitHub Actions workflows:
 
 - `TF_BACKEND_BUCKET` - The S3 bucket name for storing Terraform state (e.g., `vprofile-ochuko`)
 - `TF_BACKEND_REGION` - The AWS region where the S3 bucket is located (e.g., `us-east-2`)
 
 These values should match what you have in your `state.config` file for local deployments.
 
-**Important**: These backend configuration secrets are used by all three workflows (VPC, EKS, and Workloads) to initialize Terraform with the S3 backend.
+**Important**: These backend configuration variables are used by all three workflows (VPC, EKS, and Workloads) to initialize Terraform with the S3 backend.
 
-#### Required TF_VAR Secrets
+**Note**: Create these as **Repository Variables** (not Secrets) in GitHub Settings → Secrets and variables → Actions → Variables tab.
 
-For GitHub Actions, create repository or organization secrets for each Terraform variable, prefixed with `TF_VAR_`. Example mapping from `terraform.tfvars`:
+#### Required TF_VAR Variables
+
+For GitHub Actions, create repository or organization **variables** (not secrets) for each Terraform variable, prefixed with `TF_VAR_`. Example mapping from `terraform.tfvars`:
+
+**Note**: Variable names in GitHub should be uppercase (e.g., `TF_VAR_ENV`, `TF_VAR_REGION`, etc.) to match the workflow references.
 
 - **Environment & Regions**
   - `TF_VAR_env`
