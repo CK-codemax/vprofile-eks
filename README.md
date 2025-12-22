@@ -313,9 +313,28 @@ For GitHub Actions, create repository or organization **variables** (not secrets
   - `TF_VAR_eks_cluster_name`
   - `TF_VAR_aws_region`
 
+- **IAM & Policies**
+  - `TF_VAR_eks_admin_policy_name`
+  - `TF_VAR_manager_user_name`
+  - `TF_VAR_eks_assume_admin_policy_name`
+  - `TF_VAR_developer_user_name`
+  - `TF_VAR_developer_eks_policy_name`
+  - `TF_VAR_aws_lbc_policy_name`
+
+These IAM-related variables are required for the **EKS** and **Workloads** workflows. They control the names of IAM users and policies that Terraform creates.
+
+**Default values (from `terraform.tfvars`):**
+
+- `TF_VAR_eks_admin_policy_name` = `AmazonEKSAdminPolicy3`
+- `TF_VAR_manager_user_name` = `manager3`
+- `TF_VAR_eks_assume_admin_policy_name` = `AmazonEKSAssumeAdminPolicy3`
+- `TF_VAR_developer_user_name` = `developer3`
+- `TF_VAR_developer_eks_policy_name` = `AmazonEKSDeveloperPolicy3`
+- `TF_VAR_aws_lbc_policy_name` = `AWSLoadBalancerController3`
+
 Make sure the values of these secrets match what you would normally put in `terraform.tfvars` for local runs.
 
-**Note**: VPC networking configuration (CIDR blocks, availability zones), EKS cluster version, node group configuration (instance types, scaling), ArgoCD configuration (domain, cert issuer, app settings), Cert-Manager email, IAM policy names, user names, and EFS creation tokens are now hardcoded in the Terraform modules and do not need to be provided as secrets.
+**Note**: VPC networking configuration (CIDR blocks, availability zones), EKS cluster version, node group configuration (instance types, scaling), ArgoCD configuration (domain, cert issuer, app settings), Cert-Manager email, and EFS creation tokens are hardcoded in the Terraform modules. IAM policy names and user names are provided via TF_VAR variables.
 
 **To customize these values**, edit the following Terraform files directly:
 - **VPC/Networking**: `envs/staging/vpc/main.tf`

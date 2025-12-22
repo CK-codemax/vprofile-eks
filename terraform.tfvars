@@ -12,3 +12,13 @@ aws_region          = "us-east-2"
 # ==============================================================================
 bucket = "vprofile-ochuko"
 
+# ==============================================================================
+# IAM Variables
+# ==============================================================================
+eks_admin_policy_name        = "AmazonEKSAdminPolicy3"
+manager_user_name            = "manager3"
+eks_assume_admin_policy_name = "AmazonEKSAssumeAdminPolicy3"
+developer_user_name          = "developer3"
+developer_eks_policy_name    = "AmazonEKSDeveloperPolicy3"
+aws_lbc_policy_name          = "AWSLoadBalancerController3"
+

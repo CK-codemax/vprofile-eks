@@ -37,6 +37,6 @@ jobs:
 
       - name: Deploy VPC via Makefile (CI mode)
         run: |
-          make deploy-vpc-ci
+          TF_LOG=INFO make deploy-vpc-ci
 
 

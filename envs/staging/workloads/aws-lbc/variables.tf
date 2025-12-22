@@ -15,3 +15,8 @@ variable "eks_cluster_name" {
   description = "Name of the Amazon EKS cluster."
 }
 
+variable "aws_lbc_policy_name" {
+  description = "Name of the IAM policy for AWS Load Balancer Controller."
+  type        = string
+}
+

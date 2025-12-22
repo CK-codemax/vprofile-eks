@@ -25,6 +25,13 @@ jobs:
       TF_VAR_eks_cluster_name: ${{ vars.TF_VAR_EKS_CLUSTER_NAME }}
       TF_VAR_aws_region: ${{ vars.TF_VAR_AWS_REGION }}
 
+      TF_VAR_eks_admin_policy_name: ${{ vars.TF_VAR_EKS_ADMIN_POLICY_NAME }}
+      TF_VAR_manager_user_name: ${{ vars.TF_VAR_MANAGER_USER_NAME }}
+      TF_VAR_eks_assume_admin_policy_name: ${{ vars.TF_VAR_EKS_ASSUME_ADMIN_POLICY_NAME }}
+      TF_VAR_developer_user_name: ${{ vars.TF_VAR_DEVELOPER_USER_NAME }}
+      TF_VAR_developer_eks_policy_name: ${{ vars.TF_VAR_DEVELOPER_EKS_POLICY_NAME }}
+      TF_VAR_aws_lbc_policy_name: ${{ vars.TF_VAR_AWS_LBC_POLICY_NAME }}
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -38,6 +45,6 @@ jobs:
 
       - name: Deploy workloads via Makefile (CI mode)
         run: |
-          make deploy-workloads-ci
+          TF_LOG=INFO make deploy-workloads-ci
 
 
