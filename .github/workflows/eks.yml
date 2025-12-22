@@ -1,6 +1,12 @@
 name: EKS Cluster
 
 on:
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/eks.yml'
+      - 'envs/staging/eks/**'
   workflow_run:
     workflows: ["VPC Infrastructure"]
     types:
