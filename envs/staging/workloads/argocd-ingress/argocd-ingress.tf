@@ -14,7 +14,7 @@ resource "kubernetes_manifest" "argocd_ingress" {
       ingressClassName = "external-nginx"
       rules = [
         {
-          host = "argo.ochukowhoro.xyz"
+          host = var.argocd_domain
           http = {
             paths = [
               {
@@ -35,7 +35,7 @@ resource "kubernetes_manifest" "argocd_ingress" {
       ]
       tls = [
         {
-          hosts       = ["argo.ochukowhoro.xyz"]
+          hosts       = [var.argocd_domain]
           secretName  = "argo-ochukowhoro-xyz"
         }
       ]

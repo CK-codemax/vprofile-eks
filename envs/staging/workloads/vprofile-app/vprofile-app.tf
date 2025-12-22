@@ -46,7 +46,7 @@ resource "kubernetes_manifest" "vprofile_app" {
       project = "vprofile-project"
       source = {
         path           = "vprofile"
-        repoURL        = "https://github.com/OchukoWH/argo-project-defs.git"
+        repoURL        = var.argocd_app_repo_url
         targetRevision = "amazon-eks"
       }
       syncPolicy = {

@@ -4,21 +4,21 @@ on:
   push:
     branches:
       - main
-  #   paths:
-  #     - '.github/workflows/eks.yml'
-  #     - 'envs/staging/eks/**'
-  # workflow_run:
-  #   workflows: ["VPC Infrastructure"]
-  #   types:
-  #     - completed
-  # workflow_dispatch:
+    paths:
+      - '.github/workflows/eks.yml'
+      - 'envs/staging/eks/**'
+  workflow_run:
+    workflows: ["VPC Infrastructure"]
+    types:
+      - completed
+  workflow_dispatch:
 
 jobs:
   deploy-eks:
     name: Deploy EKS (Terraform)
     runs-on: self-hosted
     # Only run if VPC workflow completed successfully (or if manually triggered)
-    # if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch' }}
+    if: ${{ github.event.workflow_run.conclusion == 'success' || github.event_name == 'workflow_dispatch' }}
 
     env:
       # Terraform backend configuration (must be provided as GitHub Variables)

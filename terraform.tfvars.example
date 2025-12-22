@@ -1,0 +1,50 @@
+# ==============================================================================
+# Example terraform.tfvars for local (terminal) usage
+# Copy this file to terraform.tfvars and customize as needed.
+# ==============================================================================
+
+# ------------------------------------------------------------------------------
+# Global/Common
+# ------------------------------------------------------------------------------
+env                 = "staging"
+region              = "us-east-2"
+terraform_s3_bucket = "your-terraform-state-bucket-name" # must be globally unique
+eks_cluster_name    = "demo3"
+aws_region          = "us-east-2"
+
+# ------------------------------------------------------------------------------
+# S3 Backend (for global/envs/global/s3)
+# ------------------------------------------------------------------------------
+bucket = "your-terraform-state-bucket-name"
+
+# ------------------------------------------------------------------------------
+# ArgoCD / DNS
+# ------------------------------------------------------------------------------
+# ArgoCD UI domain (used by argocd-ingress)
+argocd_domain = "argo.example.com"
+
+# ------------------------------------------------------------------------------
+# IAM Policies (names for policies created by Terraform)
+# ------------------------------------------------------------------------------
+eks_admin_policy_name        = "AmazonEKSAdminPolicy3"
+manager_user_name            = "manager3"
+eks_assume_admin_policy_name = "AmazonEKSAssumeAdminPolicy3"
+developer_user_name          = "developer3"
+developer_eks_policy_name    = "AmazonEKSDeveloperPolicy3"
+aws_lbc_policy_name          = "AWSLoadBalancerController3"
+
+# ------------------------------------------------------------------------------
+# IAM Role Names (names for IAM roles created by Terraform)
+# ------------------------------------------------------------------------------
+eks_cluster_role_name = "staging-demo3-eks-cluster"
+eks_admin_role_name   = "staging-demo3-eks-admin"
+eks_nodes_role_name   = "staging-demo3-eks-nodes"
+
+# ------------------------------------------------------------------------------
+# ArgoCD Application Repo (GitOps)
+# ------------------------------------------------------------------------------
+# For most users this points to your fork of:
+#   https://github.com/OchukoWH/argo-project-defs.git
+argocd_app_repo_url = "https://github.com/<your-github-username>/argo-project-defs.git"
+
+

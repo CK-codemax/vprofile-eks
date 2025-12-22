@@ -36,6 +36,9 @@ jobs:
       TF_VAR_eks_admin_role_name: ${{ vars.TF_VAR_EKS_ADMIN_ROLE_NAME }}
       TF_VAR_eks_nodes_role_name: ${{ vars.TF_VAR_EKS_NODES_ROLE_NAME }}
 
+      TF_VAR_argocd_domain: ${{ vars.TF_VAR_ARGOCD_DOMAIN }}
+      TF_VAR_argocd_app_repo_url: ${{ vars.TF_VAR_ARGOCD_APP_REPO_URL }}
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4

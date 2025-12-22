@@ -326,6 +326,10 @@ For GitHub Actions, create repository or organization **variables** (not secrets
   - `TF_VAR_eks_admin_role_name`
   - `TF_VAR_eks_nodes_role_name`
 
+- **ArgoCD Application**
+  - `TF_VAR_argocd_domain`
+  - `TF_VAR_argocd_app_repo_url`
+
 These IAM-related variables are required for the **EKS** and **Workloads** workflows. They control the names of IAM users and policies that Terraform creates.
 
 **Default values (from `terraform.tfvars`):**
@@ -343,11 +347,19 @@ These IAM-related variables are required for the **EKS** and **Workloads** workf
 - `TF_VAR_eks_admin_role_name` = `staging-demo3-eks-admin`
 - `TF_VAR_eks_nodes_role_name` = `staging-demo3-eks-nodes`
 
+**Default ArgoCD Application Settings (from `terraform.tfvars`):**
+
+- `TF_VAR_argocd_domain` = `argo.ochukowhoro.xyz`
+- `TF_VAR_argocd_app_repo_url` = `https://github.com/OchukoWH/argo-project-defs.git`
+
+If you fork the Argo application repo, update `TF_VAR_argocd_app_repo_url` to point to your fork.  
+If you want to use a different ArgoCD URL (e.g., `argo.your-domain.com`), update `TF_VAR_argocd_domain` accordingly.
+
 If you already have IAM roles in AWS with different names, update these TF_VARs in GitHub repository variables to avoid `EntityAlreadyExists` errors.
 
 Make sure the values of these secrets match what you would normally put in `terraform.tfvars` for local runs.
 
-**Note**: VPC networking configuration (CIDR blocks, availability zones), EKS cluster version, node group configuration (instance types, scaling), ArgoCD configuration (domain, cert issuer, app settings), Cert-Manager email, and EFS creation tokens are hardcoded in the Terraform modules. IAM policy names and user names are provided via TF_VAR variables.
+**Note**: VPC networking configuration (CIDR blocks, availability zones), EKS cluster version, node group configuration (instance types, scaling), Cert-Manager email, and EFS creation tokens are hardcoded in the Terraform modules. ArgoCD domain, IAM policy names, and user names are provided via TF_VAR variables.
 
 **To customize these values**, edit the following Terraform files directly:
 - **VPC/Networking**: `envs/staging/vpc/main.tf`
@@ -355,6 +367,67 @@ Make sure the values of these secrets match what you would normally put in `terr
 - **ArgoCD Ingress**: `envs/staging/workloads/argocd-ingress/argocd-ingress.tf`
 - **Cert-Manager**: `envs/staging/workloads/cluster-issuer/cluster-issuer.tf`
 - **ArgoCD Application**: `envs/staging/workloads/vprofile-app/vprofile-app.tf`
+
+### Customize the VProfile Application Ingress (vprofile URL)
+
+The VProfile application itself is defined in a separate GitOps repo (on the **`amazon-eks`** branch):  
+`https://github.com/OchukoWH/argo-project-defs.git`
+
+To use your own domain for the app (for example, `vprofile.your-domain.com`):
+
+1. **Fork and clone** the repo:
+
+```bash
+git clone https://github.com/OchukoWH/argo-project-defs.git
+cd argo-project-defs
+git checkout amazon-eks
+```
+
+2. **Update the VProfile ingress** in `vprofile/appingress.yaml`:
+
+```yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: vpro-ingress
+  namespace: vprofile
+  annotations:
+    cert-manager.io/cluster-issuer: http-01-production
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+spec:
+  ingressClassName: external-nginx
+  rules:
+    - host: vprofile.your-domain.com        # CHANGE THIS
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: vproapp-service
+                port:
+                  number: 8080
+  tls:
+    - hosts:
+        - vprofile.your-domain.com          # CHANGE THIS
+      secretName: vprofile-your-domain-com  # CHANGE THIS
+```
+
+3. **Commit and push** your changes to your fork.
+
+4. **Point `TF_VAR_argocd_app_repo_url`** (in this infra repo’s GitHub Actions variables) to your fork URL so ArgoCD deploys from your customized repo.
+
+5. **Configure DNS** (e.g., in GoDaddy or Route53) to add a CNAME record:
+
+```text
+Type:  CNAME
+Name:  vprofile
+Value: <nginx-ingress-lb-hostname>
+TTL:   300
+```
+
+Once DNS propagates and cert-manager issues a certificate, your VProfile app will be available at `https://vprofile.your-domain.com`.
 
 ### Self-Hosted Runner Requirements
 

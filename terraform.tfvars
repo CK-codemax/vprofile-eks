@@ -13,6 +13,11 @@ aws_region          = "us-east-2"
 bucket = "vprofile-ochuko"
 
 # ==============================================================================
+# ArgoCD Variables
+# ==============================================================================
+argocd_domain = "argo.ochukowhoro.xyz"
+
+# ==============================================================================
 # IAM Variables
 # ==============================================================================
 eks_admin_policy_name        = "AmazonEKSAdminPolicy3"
@@ -26,4 +31,7 @@ aws_lbc_policy_name          = "AWSLoadBalancerController3"
 eks_cluster_role_name = "staging-demo3-eks-cluster"
 eks_admin_role_name   = "staging-demo3-eks-admin"
 eks_nodes_role_name   = "staging-demo3-eks-nodes"
+
+# ArgoCD Application Variables
+argocd_app_repo_url = "https://github.com/OchukoWH/argo-project-defs.git"
 

@@ -15,3 +15,9 @@ variable "eks_cluster_name" {
   description = "Name of the Amazon EKS cluster."
 }
 
+variable "argocd_app_repo_url" {
+  description = "Git repository URL for the ArgoCD vprofile application."
+  type        = string
+}
+
+

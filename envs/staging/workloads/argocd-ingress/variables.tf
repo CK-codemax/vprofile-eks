@@ -14,3 +14,9 @@ variable "env" {
 variable "eks_cluster_name" {
   description = "Name of the Amazon EKS cluster."
 }
+
+variable "argocd_domain" {
+  description = "Domain name for ArgoCD ingress (e.g., argo.example.com)."
+  type        = string
+}
+
