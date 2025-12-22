@@ -44,3 +44,18 @@ variable "aws_region" {
   description = "AWS region (for cluster autoscaler)."
 }
 
+variable "eks_cluster_role_name" {
+  description = "Name of the IAM role for the EKS cluster."
+  type        = string
+}
+
+variable "eks_admin_role_name" {
+  description = "Name of the IAM role for EKS admin access."
+  type        = string
+}
+
+variable "eks_nodes_role_name" {
+  description = "Name of the IAM role for EKS worker nodes."
+  type        = string
+}
+

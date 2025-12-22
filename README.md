@@ -321,6 +321,11 @@ For GitHub Actions, create repository or organization **variables** (not secrets
   - `TF_VAR_developer_eks_policy_name`
   - `TF_VAR_aws_lbc_policy_name`
 
+- **IAM Role Names**
+  - `TF_VAR_eks_cluster_role_name`
+  - `TF_VAR_eks_admin_role_name`
+  - `TF_VAR_eks_nodes_role_name`
+
 These IAM-related variables are required for the **EKS** and **Workloads** workflows. They control the names of IAM users and policies that Terraform creates.
 
 **Default values (from `terraform.tfvars`):**
@@ -331,6 +336,14 @@ These IAM-related variables are required for the **EKS** and **Workloads** workf
 - `TF_VAR_developer_user_name` = `developer3`
 - `TF_VAR_developer_eks_policy_name` = `AmazonEKSDeveloperPolicy3`
 - `TF_VAR_aws_lbc_policy_name` = `AWSLoadBalancerController3`
+
+**Default IAM Role Names (from `terraform.tfvars`):**
+
+- `TF_VAR_eks_cluster_role_name` = `staging-demo3-eks-cluster`
+- `TF_VAR_eks_admin_role_name` = `staging-demo3-eks-admin`
+- `TF_VAR_eks_nodes_role_name` = `staging-demo3-eks-nodes`
+
+If you already have IAM roles in AWS with different names, update these TF_VARs in GitHub repository variables to avoid `EntityAlreadyExists` errors.
 
 Make sure the values of these secrets match what you would normally put in `terraform.tfvars` for local runs.
 

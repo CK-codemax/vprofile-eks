@@ -32,6 +32,10 @@ jobs:
       TF_VAR_developer_user_name: ${{ vars.TF_VAR_DEVELOPER_USER_NAME }}
       TF_VAR_developer_eks_policy_name: ${{ vars.TF_VAR_DEVELOPER_EKS_POLICY_NAME }}
 
+      TF_VAR_eks_cluster_role_name: ${{ vars.TF_VAR_EKS_CLUSTER_ROLE_NAME }}
+      TF_VAR_eks_admin_role_name: ${{ vars.TF_VAR_EKS_ADMIN_ROLE_NAME }}
+      TF_VAR_eks_nodes_role_name: ${{ vars.TF_VAR_EKS_NODES_ROLE_NAME }}
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4

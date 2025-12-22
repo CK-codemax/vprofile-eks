@@ -84,7 +84,7 @@ help:
 # ==============================================================================
 init-s3:
 	@echo "$(GREEN)Initializing S3 backend...$(NC)"
-	@cd $(S3_DIR) && terraform init -backend-config=../../../$(STATE_CONFIG)
+	@cd $(S3_DIR) && terraform init
 
 deploy-s3:
 	@echo "$(GREEN)Deploying S3 backend...$(NC)"

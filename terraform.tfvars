@@ -22,3 +22,8 @@ developer_user_name          = "developer3"
 developer_eks_policy_name    = "AmazonEKSDeveloperPolicy3"
 aws_lbc_policy_name          = "AWSLoadBalancerController3"
 
+# IAM Role Name Variables
+eks_cluster_role_name = "staging-demo3-eks-cluster"
+eks_admin_role_name   = "staging-demo3-eks-admin"
+eks_nodes_role_name   = "staging-demo3-eks-nodes"
+
