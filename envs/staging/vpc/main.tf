@@ -20,10 +20,10 @@ resource "aws_internet_gateway" "igw" {
 resource "aws_subnet" "private_zone1" {
   vpc_id            = aws_vpc.main.id
   cidr_block        = "10.0.0.0/19"
-  availability_zone = "us-east-2a"
+  availability_zone = "${var.region}a"
 
   tags = {
-    "Name"                                                 = "${var.env}-private-us-east-2a"
+    "Name"                                                 = "${var.env}-private-${var.region}a"
     "kubernetes.io/role/internal-elb"                      = "1"
     "kubernetes.io/cluster/${var.env}-${var.eks_cluster_name}" = "owned"
   }
@@ -32,10 +32,10 @@ resource "aws_subnet" "private_zone1" {
 resource "aws_subnet" "private_zone2" {
   vpc_id            = aws_vpc.main.id
   cidr_block        = "10.0.32.0/19"
-  availability_zone = "us-east-2b"
+  availability_zone = "${var.region}b"
 
   tags = {
-    "Name"                                                 = "${var.env}-private-us-east-2b"
+    "Name"                                                 = "${var.env}-private-${var.region}b"
     "kubernetes.io/role/internal-elb"                      = "1"
     "kubernetes.io/cluster/${var.env}-${var.eks_cluster_name}" = "owned"
   }
@@ -44,11 +44,11 @@ resource "aws_subnet" "private_zone2" {
 resource "aws_subnet" "public_zone1" {
   vpc_id                  = aws_vpc.main.id
   cidr_block              = "10.0.64.0/19"
-  availability_zone       = "us-east-2a"
+  availability_zone       = "${var.region}a"
   map_public_ip_on_launch = true
 
   tags = {
-    "Name"                                                 = "${var.env}-public-us-east-2a"
+    "Name"                                                 = "${var.env}-public-${var.region}a"
     "kubernetes.io/role/elb"                               = "1"
     "kubernetes.io/cluster/${var.env}-${var.eks_cluster_name}" = "owned"
   }
@@ -57,11 +57,11 @@ resource "aws_subnet" "public_zone1" {
 resource "aws_subnet" "public_zone2" {
   vpc_id                  = aws_vpc.main.id
   cidr_block              = "10.0.96.0/19"
-  availability_zone       = "us-east-2b"
+  availability_zone       = "${var.region}b"
   map_public_ip_on_launch = true
 
   tags = {
-    "Name"                                                 = "${var.env}-public-us-east-2b"
+    "Name"                                                 = "${var.env}-public-${var.region}b"
     "kubernetes.io/role/elb"                               = "1"
     "kubernetes.io/cluster/${var.env}-${var.eks_cluster_name}" = "owned"
   }
