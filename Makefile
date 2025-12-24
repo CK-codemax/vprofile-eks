@@ -130,9 +130,9 @@ deploy-vpc-ci:
 		exit 1; \
 	fi
 	@cd $(VPC_DIR) && \
-		terraform init -backend-config="bucket=$(TF_BACKEND_BUCKET)" -backend-config="region=$(TF_BACKEND_REGION)" && \
-		terraform plan -compact-warnings -out=tfplan && \
-		terraform apply -auto-approve tfplan && \
+		terraform init -backend-config="bucket=$(TF_BACKEND_BUCKET)" -backend-config="region=$(TF_BACKEND_REGION)" || exit 1 && \
+		terraform plan -compact-warnings -out=tfplan || exit 1 && \
+		terraform apply -auto-approve tfplan || exit 1 && \
 		rm -f tfplan
 	@echo "$(GREEN)✓ VPC deployed successfully (CI mode)$(NC)"
 
@@ -152,9 +152,9 @@ deploy-eks-ci:
 		exit 1; \
 	fi
 	@cd $(EKS_DIR) && \
-		terraform init -backend-config="bucket=$(TF_BACKEND_BUCKET)" -backend-config="region=$(TF_BACKEND_REGION)" && \
-		terraform plan -compact-warnings -out=tfplan && \
-		terraform apply -auto-approve tfplan && \
+		terraform init -backend-config="bucket=$(TF_BACKEND_BUCKET)" -backend-config="region=$(TF_BACKEND_REGION)" || exit 1 && \
+		terraform plan -compact-warnings -out=tfplan || exit 1 && \
+		terraform apply -auto-approve tfplan || exit 1 && \
 		rm -f tfplan
 	@echo "$(GREEN)✓ EKS cluster deployed successfully (CI mode)$(NC)"
 
@@ -191,9 +191,9 @@ define deploy-workload-ci
 		exit 1; \
 	fi
 	@cd $(WORKLOADS_DIR)/$(1) && \
-		terraform init -backend-config="bucket=$(TF_BACKEND_BUCKET)" -backend-config="region=$(TF_BACKEND_REGION)" && \
-		terraform plan -compact-warnings -out=tfplan && \
-		terraform apply -auto-approve tfplan && \
+		terraform init -backend-config="bucket=$(TF_BACKEND_BUCKET)" -backend-config="region=$(TF_BACKEND_REGION)" || exit 1 && \
+		terraform plan -compact-warnings -out=tfplan || exit 1 && \
+		terraform apply -auto-approve tfplan || exit 1 && \
 		rm -f tfplan
 	@echo "$(GREEN)✓ $(1) deployed successfully (CI mode)$(NC)"
 	@echo ""
