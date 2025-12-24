@@ -5,7 +5,7 @@ on:
     branches:
       - main
     paths:
-      # - '.github/workflows/vpc.yml'
+      - '.github/workflows/vpc.yml'
       - 'envs/staging/vpc/**'
   workflow_dispatch:
 

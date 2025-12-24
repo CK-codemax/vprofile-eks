@@ -2,36 +2,36 @@
 # Global/Common Variables
 # ==============================================================================
 env                 = "staging"
-region              = "us-east-2"
-terraform_s3_bucket = "vprofile-ochuko"
-eks_cluster_name    = "demo3"
-aws_region          = "us-east-2"
+region              = "us-west-2"
+terraform_s3_bucket = "vprofile-ochuko-west"
+eks_cluster_name    = "demo"
+aws_region          = "us-west-2"
 
 # ==============================================================================
 # S3 Backend Variables
 # ==============================================================================
-bucket = "vprofile-ochuko"
+bucket = "vprofile-ochuko-west"
 
 # ==============================================================================
 # ArgoCD Variables
 # ==============================================================================
-argocd_domain = "argo.ochukowhoro.xyz"
+# argocd_domain = "argo.ochukowhoro.xyz"
 
-# ==============================================================================
-# IAM Variables
-# ==============================================================================
-eks_admin_policy_name        = "AmazonEKSAdminPolicy3"
-manager_user_name            = "manager3"
-eks_assume_admin_policy_name = "AmazonEKSAssumeAdminPolicy3"
-developer_user_name          = "developer3"
-developer_eks_policy_name    = "AmazonEKSDeveloperPolicy3"
-aws_lbc_policy_name          = "AWSLoadBalancerController3"
+# # ==============================================================================
+# # IAM Variables
+# # ==============================================================================
+# eks_admin_policy_name        = "AmazonEKSAdminPolicy3"
+# manager_user_name            = "manager3"
+# eks_assume_admin_policy_name = "AmazonEKSAssumeAdminPolicy3"
+# developer_user_name          = "developer3"
+# developer_eks_policy_name    = "AmazonEKSDeveloperPolicy3"
+# aws_lbc_policy_name          = "AWSLoadBalancerController3"
 
-# IAM Role Name Variables
-eks_cluster_role_name = "staging-demo3-eks-cluster"
-eks_admin_role_name   = "staging-demo3-eks-admin"
-eks_nodes_role_name   = "staging-demo3-eks-nodes"
+# # IAM Role Name Variables
+# eks_cluster_role_name = "staging-demo3-eks-cluster"
+# eks_admin_role_name   = "staging-demo3-eks-admin"
+# eks_nodes_role_name   = "staging-demo3-eks-nodes"
 
-# ArgoCD Application Variables
-argocd_app_repo_url = "https://github.com/OchukoWH/argo-project-defs.git"
+# # ArgoCD Application Variables
+# argocd_app_repo_url = "https://github.com/OchukoWH/argo-project-defs.git"
 
