@@ -1,4 +1,4 @@
-# VProfile EKS Infrastructure
+# Production Grade EKS Gitops Platform
 
 ![Kubernetes](https://img.shields.io/badge/kubernetes-v1.28-326CE5?style=flat&logo=kubernetes&logoColor=white)
 ![Ansible](https://img.shields.io/badge/ansible-automated-EE0000?style=flat&logo=ansible&logoColor=white)
